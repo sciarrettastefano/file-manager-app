@@ -4,7 +4,8 @@ import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Dashboard-quasar" />
+    <q-btn label="Ciao Quasar" color="primary" class="border border-red-500" />
 
     <AuthenticatedLayout>
         <template #header>
