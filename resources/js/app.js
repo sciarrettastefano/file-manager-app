@@ -5,9 +5,8 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
-import { Quasar } from 'quasar'
+import { Quasar } from 'quasar';
 import 'quasar/dist/quasar.css'
-import '@quasar/extras/material-icons/material-icons.css'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
