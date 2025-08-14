@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,6 +15,13 @@ Route::get('/', function () {
     ]);
 });
 
+Route::controller(\App\Http\Controllers\UserController::class)
+    ->middleware(['auth', 'verified'])
+    ->group(function () {
+        Route::get('/users', 'index')->name('users.index');
+    });
+
+//si può cancellare più avanti
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

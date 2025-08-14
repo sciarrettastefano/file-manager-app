@@ -2,16 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    // Mostra i gli utenti
+    // Mostra gli utenti
     public function index(Request $request) {
+        // Controllo dei permessi
         if ($request->user()->cannot('view', User::class)) {
             abort(403, 'Unauthorized action.');
         }
+
+        $users = User::query()->with('roles')->get();
+
+        return Inertia::render('Users', [
+            'users' => UserResource::collection($users)
+        ]);
     }
 
     // Creazione di un nuovo utente

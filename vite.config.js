@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import { quasar } from '@quasar/vite-plugin';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -18,7 +19,7 @@ export default defineConfig({
             },
         }),
         quasar({
-            sassVariables: 'resources/css/quasar-variables.sass'
+            sassVariables: path.resolve(__dirname, 'resources/css/quasar-variables.sass')
         }),
     ],
 });
