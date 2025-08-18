@@ -5,7 +5,7 @@ import { createInertiaApp, Link } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
-import { Quasar } from 'quasar';
+import { Quasar, Notify } from 'quasar';
 import 'quasar/src/css/index.sass'
 import '@quasar/extras/material-icons/material-icons.css'
 import _ from 'lodash'
@@ -25,7 +25,7 @@ createInertiaApp({
             .use(_, {})
             .use(plugin)
             .use(ZiggyVue)
-            .use(Quasar, {plugins: {},}
+            .use(Quasar, {plugins: { Notify },}
             )
             .mount(el);
     },

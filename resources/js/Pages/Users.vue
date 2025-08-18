@@ -70,7 +70,7 @@
                 </q-table>
 
                 <!--modale per creazione users-->
-                <CreateUserModal v-model="showCreateModal"/>
+                <CreateUserModal v-model="showCreateModal" @cancel="handleCancel"/>
 
             </q-page>
         </q-page-container>
@@ -87,7 +87,7 @@ import { ref, toRaw, nextTick, watch, computed } from 'vue'
 import _ from 'lodash'
 
 const props = defineProps({
-  users: {type:Object, default:() => {}}
+  users: Object
 });
 
 // Uses
@@ -117,8 +117,13 @@ let storedSelectedRow
 
 // Methods
 function handleCreate() {
-    console.log('test')
+    console.log('apro modale creazione utente')
     showCreateModal.value = true
+}
+
+function handleCancel() {
+    console.log('chiudo modale creazione utente')
+    showCreateModal.value = false
 }
 
 function handleSelection({ rows, added, evt }) {
@@ -169,7 +174,7 @@ function handleSelection({ rows, added, evt }) {
 
 // Hooks
 watch(() => props.users.data, (newData) => {
-  rows.value = _.cloneDeep(newData)
+    rows.value = _.cloneDeep(newData)
 })
 
 

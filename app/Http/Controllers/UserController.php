@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -17,17 +19,25 @@ class UserController extends Controller
         }
 
         $users = User::query()->with('roles')->get();
-        
+
         return Inertia::render('Users', [
             'users' => UserResource::collection($users)
         ]);
     }
 
     // Creazione di un nuovo utente
-    public function create(Request $request) {
+    public function create(StoreUserRequest $request) {
         if ($request->user()->cannot('create', User::class)) {
             abort(403, 'Unauthorized action.');
         }
+        $data = $request->validated();
+        
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'password' => Hash::make($data['password']),
+        ]);
 
     }
 

@@ -19,6 +19,7 @@ Route::controller(\App\Http\Controllers\UserController::class)
     ->middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/users', 'index')->name('users.index');
+        Route::post('/users/create', 'create')->name('users.create');
     });
 
 //si può cancellare più avanti
