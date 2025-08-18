@@ -17,7 +17,7 @@ class UserController extends Controller
         }
 
         $users = User::query()->with('roles')->get();
-
+        
         return Inertia::render('Users', [
             'users' => UserResource::collection($users)
         ]);
