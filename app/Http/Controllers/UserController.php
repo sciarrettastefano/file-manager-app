@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangeStatusRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -18,7 +19,11 @@ class UserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $users = User::query()->with('roles')->get();
+        $users = User::query()
+            ->with('roles')
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'superadmin');
+            })->get();
 
         return Inertia::render('Users', [
             'users' => UserResource::collection($users)
@@ -31,7 +36,7 @@ class UserController extends Controller
             abort(403, 'Unauthorized action.');
         }
         $data = $request->validated();
-        
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -50,16 +55,15 @@ class UserController extends Controller
     }
 
     // Gestione status di un utente (attivo/inattivo)
-    public function changeStatus(Request $request) {
+    public function changeStatus(ChangeStatusRequest $request, User $user) {
         if ($request->user()->cannot('changeStatus', User::class)) {
             abort(403, 'Unauthorized action.');
         }
 
-        //modifica campo active
-        /**
-         * $user->is_active = false;
-         * $user->save();
-        */
+        $data = $request->validated();
+
+        $user->is_active = $data['active'];
+        $user->save();
     }
 
 }

@@ -25,8 +25,8 @@ class UserPolicy
         return $user->hasRole('superadmin');
     }
 
-    public function changeStatus(User $user) {
+    /*public function changeStatus(User $user) {
         return $user->hasRole('superadmin');
-    }
+    }*/
 
 }

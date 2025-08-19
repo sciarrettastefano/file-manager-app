@@ -20,6 +20,7 @@ Route::controller(\App\Http\Controllers\UserController::class)
     ->group(function () {
         Route::get('/users', 'index')->name('users.index');
         Route::post('/users/create', 'create')->name('users.create');
+        Route::patch('/users/{user}/status', 'changeStatus')->name('users.changeStatus');
     });
 
 //si può cancellare più avanti

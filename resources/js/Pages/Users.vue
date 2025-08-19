@@ -42,16 +42,25 @@
                         <q-checkbox :model-value="scope.selected" @update:model-value="(val, evt) => { Object.getOwnPropertyDescriptor(scope, 'selected').set(val, evt) }" />
                     </template>
 
-                    <!--<template v-slot:body-cell-status="value">
-                        <q-td :props="props">
+                    <!-- Slot per inserire toggle switch per status -->
+                    <template v-slot:body-cell-status="props">
+                        <q-td>
                             <q-toggle
                                 v-model="props.row.status"
                                 color="primary"
-                                :label="props.row.status ? 'Active' : 'Inactive'"
+                                :true-value="1"
+                                :false-value="0"
                                 @update:model-value="onToggleChange(props.row)"
-                            </q-toggle>
+                            />
                         </q-td>
-                    </template> -->
+                    </template>
+
+                    <!-- Slot per inserire pulsante per in-line actions -->
+                    <template v-slot:body-cell-actions>
+                        <q-td>
+                            test
+                        </q-td>
+                    </template>
 
                     <!--inserire actions in-line-->
 
@@ -82,7 +91,7 @@
 // Imports
 import CreateUserModal from '@/Components/App/CreateUserModal.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ref, toRaw, nextTick, watch, computed } from 'vue'
 import _ from 'lodash'
 
@@ -91,7 +100,9 @@ const props = defineProps({
 });
 
 // Uses
-
+const form = useForm({
+    active: null
+})
 
 // Refs
 const rows = ref(props.users.data ?? [])
@@ -165,12 +176,30 @@ function handleSelection({ rows, added, evt }) {
         selected.value = [newSelectedRow]
     }
     })
+    console.log(selected.value)
 }
 
-/*function onToggleChange(row) {
-    // Logica per gestire il cambiamento dello stato dell'utente chiamata a un'API o aggiornamento del database
-    console.log(`User ${row.name} status changed to ${row.status ? 'Active' : 'Inactive'}`);
-}*/
+function onToggleChange(row) {
+    form.active = row.status
+    form.patch(route('users.changeStatus', row.id), {
+        onSuccess: () => {
+            $q.notify({
+                color: 'green-4',
+                textColor: 'white',
+                icon: 'cloud_done',
+                message: 'User status updated correctly.'
+            })
+        },
+        onError: () => {
+            $q.notify({
+                color: 'red-5',
+                textColor: 'white',
+                icon: 'warning',
+                message: 'An error was detected.'
+            })
+        }
+    })
+}
 
 // Hooks
 watch(() => props.users.data, (newData) => {
