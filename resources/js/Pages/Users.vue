@@ -17,9 +17,8 @@
                         />
                     </div>
                     <!-- inserire metodi al click-->
-                    <div class="row justify-end q-gutter-md full-width q-pb-sm">
+                    <div class="row justify-end q-gutter-md full-width q-pa-sm">
                         <q-btn color="primary" icon="add" label="Create" @click="handleCreate()" />
-                        <q-btn color="primary" icon="account_circle_off" label="Deactivate" />
                     </div>
                 </q-toolbar>
                 <q-table
@@ -56,9 +55,9 @@
                     </template>
 
                     <!-- Slot per inserire pulsante per in-line actions -->
-                    <template v-slot:body-cell-actions>
+                    <template v-slot:body-cell-actions="props">
                         <q-td>
-                            test
+                            <UsersInlineActionsMenu @edit="handleEdit" @changeStatus="handleChangeStatus(props.row)" />
                         </q-td>
                     </template>
 
@@ -94,12 +93,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref, toRaw, nextTick, watch, computed } from 'vue'
 import _ from 'lodash'
+import { useQuasar } from 'quasar';
+import UsersInlineActionsMenu from '@/Components/App/UsersInlineActionsMenu.vue';
 
 const props = defineProps({
   users: Object
 });
 
 // Uses
+const $q = useQuasar()
 const form = useForm({
     active: null
 })
@@ -199,6 +201,15 @@ function onToggleChange(row) {
             })
         }
     })
+}
+
+function handleEdit(){
+    console.log('edit')
+}
+
+function handleChangeStatus(row) {
+    row.status = !row.status
+    onToggleChange(row)
 }
 
 // Hooks

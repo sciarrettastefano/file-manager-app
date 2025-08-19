@@ -7,7 +7,6 @@
         unelevated
         side-right
     >
-        <!--aggiungere rotte con :href="..." per gestione profilo-->
         <q-menu fit>
             <q-list dense>
                 <Link
