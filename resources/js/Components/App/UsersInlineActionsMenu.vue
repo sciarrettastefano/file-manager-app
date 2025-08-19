@@ -4,6 +4,7 @@
             fit
             :offset="[140, 0]"
             width: auto
+            auto-close
         >
             <q-list dense>
                 <q-item clickable class="q-pa-xs" @click="onClick('edit')">

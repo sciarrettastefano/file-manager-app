@@ -11,7 +11,7 @@
                     </q-toolbar-title>
                 </div>
                 <div class="absolute-right q-pt-sm q-pr-md">
-                    <UserSettingsDropdown />
+                    <UserSettingsDropdown :name="$page.props.auth.user.name" />
                 </div>
         </q-toolbar>
         </q-header>

@@ -1,13 +1,17 @@
 <template>
     <!--aggiungere nome utente nella label-->
     <q-btn
-        icon-right="keyboard_arrow_down"
-        label="username"
         class="text-capitalize"
         unelevated
         side-right
+        :label="props.name"
+        :icon-right="menuOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
     >
-        <q-menu fit>
+        <q-menu
+            v-model="menuOpen"
+            fit
+            @click="onClick"
+        >
             <q-list dense>
                 <Link
                     :href="route('profile.edit')"
@@ -33,25 +37,34 @@
 
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
-
 // Imports
+import { Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 
 // Uses
 
 
 // Refs
-
+const menuOpen = ref(false)
 
 // Props & Emit
+const props = defineProps({
+    name: {
+        type: String,
+        default: 'username'
+    }
+})
 
 
 // Computed
 
 
 // Methods
-
+function onClick() {
+    menuOpen.value = !menuOpen.value
+    console.log('nuova visibilità: ', menuOpen.value)
+}
 
 // Hooks
 
