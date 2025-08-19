@@ -17,7 +17,7 @@ class StoreUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'role' => 'required|in:user,admin,superadmin',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8',
         ];
     }
 
@@ -26,6 +26,7 @@ class StoreUserRequest extends FormRequest
         return [
             'name.required' => 'Il nome è obbligatorio.',
             'email.unique'  => 'Questa email è già stata usata.',
+            'role' => 'Il ruolo è obbligatorio.'
         ];
     }
 }

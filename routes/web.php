@@ -21,6 +21,7 @@ Route::controller(\App\Http\Controllers\UserController::class)
         Route::get('/users', 'index')->name('users.index');
         Route::post('/users/create', 'create')->name('users.create');
         Route::patch('/users/{user}/status', 'changeStatus')->name('users.changeStatus');
+        Route::put('/users/{user}/edit', 'edit')->name('users.edit');
     });
 
 //si può cancellare più avanti

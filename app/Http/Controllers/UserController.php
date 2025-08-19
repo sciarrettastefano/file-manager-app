@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangeStatusRequest;
+use App\Http\Requests\EditUserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -46,12 +48,19 @@ class UserController extends Controller
 
     }
 
-    // Modifica dati di un utente
-    public function edit(Request $request) {
+    // Modifica dati di un utente (nome, email e ruolo)
+    public function edit(EditUserRequest $request, User $user) {
         if ($request->user()->cannot('edit', User::class)) {
             abort(403, 'Unauthorized action.');
         }
 
+        $data = $request->validated();
+
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->syncRoles($data['role']);
+
+        $user->save();
     }
 
     // Gestione status di un utente (attivo/inattivo)

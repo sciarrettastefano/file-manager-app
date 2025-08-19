@@ -18,7 +18,7 @@
                     </div>
                     <!-- inserire metodi al click-->
                     <div class="row justify-end q-gutter-md full-width q-pa-sm">
-                        <q-btn color="primary" icon="add" label="Create" @click="handleCreate()" />
+                        <q-btn color="primary" icon="add" label="Create" @click="onShow('createUserModal')" />
                     </div>
                 </q-toolbar>
                 <q-table
@@ -57,7 +57,10 @@
                     <!-- Slot per inserire pulsante per in-line actions -->
                     <template v-slot:body-cell-actions="props">
                         <q-td>
-                            <UsersInlineActionsMenu @edit="handleEdit" @changeStatus="handleChangeStatus(props.row)" />
+                            <UsersInlineActionsMenu
+                                @edit="onShow('editUserModal', props.row)"
+                                @changeStatus="handleChangeStatusInline(props.row)"
+                            />
                         </q-td>
                     </template>
 
@@ -78,7 +81,8 @@
                 </q-table>
 
                 <!--modale per creazione users-->
-                <CreateUserModal v-model="showCreateModal" @cancel="handleCancel"/>
+                <CreateUserModal v-model="showCreateModal" @cancel="handleCancel('createUserModal')"/>
+                <EditUserModal v-model="showEditModal" :user="selectedUser" @cancel="handleCancel('editUserModal')"/>
 
             </q-page>
         </q-page-container>
@@ -95,10 +99,13 @@ import { ref, toRaw, nextTick, watch, computed } from 'vue'
 import _ from 'lodash'
 import { useQuasar } from 'quasar';
 import UsersInlineActionsMenu from '@/Components/App/UsersInlineActionsMenu.vue';
+import EditUserModal from '@/Components/App/EditUserModal.vue';
 
 const props = defineProps({
-  users: Object
-});
+  users: {
+    type: Object,
+    default: {}
+}});
 
 // Uses
 const $q = useQuasar()
@@ -110,6 +117,7 @@ const form = useForm({
 const rows = ref(props.users.data ?? [])
 const tableRef = ref()
 const selected = ref([])
+const selectedUser = ref({})
 const columns = computed(() => [
     { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
     { name: 'email', align: 'left' , label: 'Email', field: (row) => row.email ?? '', sortable: true },
@@ -117,8 +125,8 @@ const columns = computed(() => [
     { name: 'status', align: 'left' , label: 'Status', field: (row) => row.status ?? '' },
     { name: 'actions', align: 'left' , label: 'Actions' }
 ])
-
 const showCreateModal = ref(false)
+const showEditModal = ref(false)
 
 let storedSelectedRow
 
@@ -129,14 +137,28 @@ let storedSelectedRow
 
 
 // Methods
-function handleCreate() {
-    console.log('apro modale creazione utente')
-    showCreateModal.value = true
+function onShow(modal, row = null) {
+    // In base al modale passato come parametro, apro quel modale
+    if (modal === 'createUserModal') {
+        showCreateModal.value = true
+    }
+    if (modal === 'editUserModal') {
+        selectedUser.value = row
+        showEditModal.value = true
+    }
 }
 
-function handleCancel() {
-    console.log('chiudo modale creazione utente')
-    showCreateModal.value = false
+function handleCancel(modal) {
+    // In base al modale passato come parametro, chiudo quel modale
+    switch(modal) {
+        case 'createUserModal':
+            showCreateModal.value = false
+            break
+        case 'editUserModal':
+            showEditModal.value = false
+            break
+    }
+
 }
 
 function handleSelection({ rows, added, evt }) {
@@ -203,11 +225,7 @@ function onToggleChange(row) {
     })
 }
 
-function handleEdit(){
-    console.log('edit')
-}
-
-function handleChangeStatus(row) {
+function handleChangeStatusInline(row) {
     row.status = !row.status
     onToggleChange(row)
 }
