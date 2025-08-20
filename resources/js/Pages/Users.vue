@@ -6,11 +6,13 @@
                 <q-toolbar class="q-pa-sm column">
                     <div class="row q-gutter-md full-width q-pa-sm">
                         <q-input
+                            v-model="filters.email"
                             outlined
                             placeholder="Search by email"
                             class="col"
                         />
                         <q-input
+                            v-model="filters.group"
                             outlined
                             placeholder="Search by group"
                             class="col"
@@ -32,8 +34,11 @@
                     :columns="columns"
                     :rows="rows"
                     row-key="name"
+                    :filter="filters"
+                    :filter-method="customFilter"
                     selection="multiple"
                     v-model:selected="selected"
+                    :pagination.sync="pagination"
                 >
                     <template v-slot:header-selection="scope">
                         <q-checkbox v-model="scope.selected" />
@@ -134,6 +139,13 @@ const selectedUser = ref({})
 
 const selected = ref([])
 
+const filters = ref({ email: '', group: '' })
+
+const pagination = ref({
+    page: 1,          // pagina corrente
+    rowsPerPage: 10,   // righe per pagina
+})
+
 // Computed
 const selectedIds = computed(() => selected.value.map(row => row.id))
 
@@ -192,6 +204,16 @@ function handleChangeStatusInline(row) {
 
 function onChange() {
     selected.value = []
+}
+
+function customFilter(rows, terms) { // Per filtrare record visualizzati
+    const search = (terms.email ?? '').toLowerCase()
+    return rows.filter(row =>
+        row.email.toLowerCase().includes(search)
+    )
+
+    /* !!aggiungere parte filtro per gruppo, una volta implementati!! */
+
 }
 
 // Hooks
