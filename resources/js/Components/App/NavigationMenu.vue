@@ -14,6 +14,7 @@
                     class="no-decoration"
                 >
                     <q-item
+                        v-if="can(section.perm)"
                         clickable
                         :class="{
                             'active-item': activeSection === section.route,
@@ -36,20 +37,24 @@
 <script setup>
 // Imports
 import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 
 // Uses
+const page = usePage()
+const permissions = page.props.auth.permissions
+
+const can = (perm) => (perm === true) ? true : permissions.includes(perm)
 
 
 // Refs
 const activeSection = ref(route().current());
 
 const sections = [
-    { name: 'files', icon: 'folder', label: 'Files', route: 'dashboard' },
-    { name: 'users', icon: 'person', label: 'Users', route: 'users.index' }, //visibile solo se utente è superadmin
-    { name: 'shares', icon: 'share', label: 'Shares', route: 'dashboard'  },
-    { name: 'groups', icon: 'group', label: 'Groups', route: 'dashboard'  },
-    { name: 'trash', icon: 'delete', label: 'Trash', route: 'dashboard'  }
+    { name: 'files', icon: 'folder', label: 'Files', route: 'dashboard', perm: true },
+    { name: 'users', icon: 'person', label: 'Users', route: 'users.index', perm: 'users.manage' }, //visibile solo se utente è superadmin
+    { name: 'shares', icon: 'share', label: 'Shares', route: 'dashboard', perm: true },
+    { name: 'groups', icon: 'group', label: 'Groups', route: 'dashboard', perm: true },
+    { name: 'trash', icon: 'delete', label: 'Trash', route: 'dashboard', perm: true }
 ]
 
 // Props & Emit

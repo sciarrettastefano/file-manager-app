@@ -6,7 +6,7 @@
         />
         <div class="absolute inset-0 flex flex-col items-center justify-center">
             <q-icon name="folder_open" size="90px" class="mb-4"></q-icon>
-            <q-title class="text-h3  mb-8">Welcome to File Manager App</q-title>
+            <div class="text-h3  mb-8">Welcome to File Manager App</div>
             <div class="flex gap-4">
                 <q-btn
                     label="Log In"
