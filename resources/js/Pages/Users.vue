@@ -19,11 +19,14 @@
                     <!-- inserire metodi al click-->
                     <div class="row justify-end q-gutter-md full-width q-pa-sm">
                         <q-btn color="primary" icon="add" label="Create" @click="onShow('createUserModal')" />
+                        <MassChangeStatusButton
+                            :change-ids="selectedIds"
+                            @change="onChange"
+                        />
                     </div>
                 </q-toolbar>
                 <q-table
                     flat bordered
-                    ref="tableRef"
                     title="Users"
                     table-header-class="bg-orange-2"
                     :columns="columns"
@@ -31,7 +34,6 @@
                     row-key="name"
                     selection="multiple"
                     v-model:selected="selected"
-                    @selection="handleSelection"
                 >
                     <template v-slot:header-selection="scope">
                         <q-checkbox v-model="scope.selected" />
@@ -49,7 +51,7 @@
                                 color="primary"
                                 :true-value="1"
                                 :false-value="0"
-                                @update:model-value="onToggleChange(props.row)"
+                                @update:model-value="onToggleChangeStatus(props.row)"
                             />
                         </q-td>
                     </template>
@@ -64,8 +66,7 @@
                         </q-td>
                     </template>
 
-                    <!--inserire actions in-line-->
-
+                    <!-- Slot per eventuale messaggio se non ho dati -->
                     <template v-slot:no-data="{ message }">
                         <div class="full-width row flex-center text-accent">
                             <q-card class="bg-warning text-black">
@@ -95,17 +96,21 @@
 import CreateUserModal from '@/Components/App/CreateUserModal.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, toRaw, nextTick, watch, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import _ from 'lodash'
 import { useQuasar } from 'quasar';
 import UsersInlineActionsMenu from '@/Components/App/UsersInlineActionsMenu.vue';
 import EditUserModal from '@/Components/App/EditUserModal.vue';
+import MassChangeStatusButton from '@/Components/App/MassChangeStatusButton.vue';
 
+
+// Props & Emit
 const props = defineProps({
   users: {
     type: Object,
     default: {}
 }});
+
 
 // Uses
 const $q = useQuasar()
@@ -115,9 +120,6 @@ const form = useForm({
 
 // Refs
 const rows = ref(props.users.data ?? [])
-const tableRef = ref()
-const selected = ref([])
-const selectedUser = ref({})
 const columns = computed(() => [
     { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
     { name: 'email', align: 'left' , label: 'Email', field: (row) => row.email ?? '', sortable: true },
@@ -125,15 +127,15 @@ const columns = computed(() => [
     { name: 'status', align: 'left' , label: 'Status', field: (row) => row.status ?? '' },
     { name: 'actions', align: 'left' , label: 'Actions' }
 ])
+
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
+const selectedUser = ref({})
 
-let storedSelectedRow
-
-// Props & Emit
-
+const selected = ref([])
 
 // Computed
+const selectedIds = computed(() => selected.value.map(row => row.id))
 
 
 // Methods
@@ -161,49 +163,7 @@ function handleCancel(modal) {
 
 }
 
-function handleSelection({ rows, added, evt }) {
-    // ignore selection change from header of not from a direct click event
-    if (rows.length !== 1 || evt === void 0) return
-
-    const oldSelectedRow = storedSelectedRow
-    const [newSelectedRow] = rows
-    const { ctrlKey, shiftKey, metaKey } = evt
-
-    if (shiftKey !== true) {
-    storedSelectedRow = newSelectedRow
-    }
-
-    // wait for the default selection to be performed
-    nextTick(() => {
-    if (shiftKey === true) {
-        const tableRows = tableRef.value.filteredSortedRows
-        let firstIndex = tableRows.indexOf(oldSelectedRow)
-        let lastIndex = tableRows.indexOf(newSelectedRow)
-
-        if (firstIndex < 0) {
-        firstIndex = 0
-        }
-
-        if (firstIndex > lastIndex) {
-        [ firstIndex, lastIndex ] = [ lastIndex, firstIndex ]
-        }
-
-        const rangeRows = tableRows.slice(firstIndex, lastIndex + 1)
-        // we need the original row object so we can match them against the rows in range
-        const selectedRows = selected.value.map(toRaw)
-
-        selected.value = added === true
-        ? selectedRows.concat(rangeRows.filter(row => selectedRows.includes(row) === false))
-        : selectedRows.filter(row => rangeRows.includes(row) === false)
-    }
-    else if ((ctrlKey || metaKey) !== true && added === true) {
-        selected.value = [newSelectedRow]
-    }
-    })
-    console.log(selected.value)
-}
-
-function onToggleChange(row) {
+function onToggleChangeStatus(row) {
     form.active = row.status
     form.patch(route('users.changeStatus', row.id), {
         onSuccess: () => {
@@ -227,7 +187,11 @@ function onToggleChange(row) {
 
 function handleChangeStatusInline(row) {
     row.status = !row.status
-    onToggleChange(row)
+    onToggleChangeStatus(row)
+}
+
+function onChange() {
+    selected.value = []
 }
 
 // Hooks

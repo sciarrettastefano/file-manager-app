@@ -22,6 +22,7 @@ Route::controller(\App\Http\Controllers\UserController::class)
         Route::post('/users/create', 'create')->name('users.create');
         Route::patch('/users/{user}/status', 'changeStatus')->name('users.changeStatus');
         Route::put('/users/{user}/edit', 'edit')->name('users.edit');
+        Route::patch('/users/mass-change-status', 'massChangeStatus')->name('users.massChangeStatus');
     });
 
 //si può cancellare più avanti

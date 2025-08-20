@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangeStatusRequest;
 use App\Http\Requests\EditUserRequest;
+use App\Http\Requests\MassChangeStatusRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -73,6 +74,18 @@ class UserController extends Controller
 
         $user->is_active = $data['active'];
         $user->save();
+    }
+
+    // Gestione massiva status utenti (attivo/inattivo)
+    public function massChangeStatus(MassChangeStatusRequest $request) {
+        if ($request->user()->cannot('changeStatus', User::class)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $data = $request->validated();
+
+        User::whereIn('id', $data['ids'])
+            ->update(['is_active' => $data['status']]);
     }
 
 }
