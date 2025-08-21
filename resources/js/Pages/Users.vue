@@ -28,17 +28,19 @@
                     </div>
                 </q-toolbar>
                 <q-table
-                    flat bordered
+                    flat
+                    bordered
                     title="Users"
                     table-header-class="bg-orange-2"
                     :columns="columns"
                     :rows="rows"
-                    row-key="name"
+                    row-key="id"
                     :filter="filters"
                     :filter-method="customFilter"
                     selection="multiple"
                     v-model:selected="selected"
                     :pagination.sync="pagination"
+                    @row-click="toggleRowSelection"
                 >
                     <template v-slot:header-selection="scope">
                         <q-checkbox v-model="scope.selected" />
@@ -65,6 +67,7 @@
                     <template v-slot:body-cell-actions="props">
                         <q-td>
                             <UsersInlineActionsMenu
+                                @click.prevent.stop
                                 @edit="onShow('editUserModal', props.row)"
                                 @changeStatus="handleChangeStatusInline(props.row)"
                             />
@@ -73,8 +76,8 @@
 
                     <!-- Slot per eventuale messaggio se non ho dati -->
                     <template v-slot:no-data="{ message }">
-                        <div class="full-width row flex-center text-accent">
-                            <q-card class="bg-warning text-black">
+                        <div class="full-width row flex-center text-accent q-py-md">
+                            <q-card class="text-black">
                                 <div class="row items-center">
                                     <q-card-section>
                                         <q-icon name="warning" size="2em" />
@@ -214,6 +217,17 @@ function customFilter(rows, terms) { // Per filtrare record visualizzati
 
     /* !!aggiungere parte filtro per gruppo, una volta implementati!! */
 
+}
+
+function toggleRowSelection (evt, row) { // Selezione record tramite clic su riga
+    const index = selected.value.findIndex(r => r.id === row.id)
+    if (index > -1) {
+        // già selezionato → lo tolgo
+        selected.value.splice(index, 1)
+    } else {
+        // non selezionato → lo aggiungo
+        selected.value.push(row)
+    }
 }
 
 // Hooks

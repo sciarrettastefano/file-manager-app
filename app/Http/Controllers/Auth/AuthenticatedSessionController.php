@@ -35,9 +35,10 @@ class AuthenticatedSessionController extends Controller
             ->first();
 
         if (!$user || !$user->is_active) {
-            abort(403, 'Unauthorized action.');
+            return redirect()->route('login')
+                ->with('warning', 'Login rejected. Your account was deactivated.');
         }
-        
+
         $request->authenticate();
         $request->session()->regenerate();
         return redirect()->intended(route('dashboard', absolute: false));

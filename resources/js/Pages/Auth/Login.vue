@@ -1,34 +1,3 @@
-<script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-
-defineProps({
-    canResetPassword: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-});
-
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
-
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
-};
-</script>
-
 <template>
     <GuestLayout>
         <Head title="Log in" />
@@ -78,6 +47,12 @@ const submit = () => {
                 </label>
             </div>
 
+            <div v-if="$page.props.flash.warning" class="q-px-xs q-py-md">
+                <q-banner dense class="bg-warning text-black q-py-lg">
+                    {{ $page.props.flash.warning }}
+                </q-banner>
+            </div>
+
             <div class="mt-4 flex items-center justify-end">
                 <Link
                     v-if="canResetPassword"
@@ -98,3 +73,36 @@ const submit = () => {
         </form>
     </GuestLayout>
 </template>
+
+<script setup>
+import Checkbox from '@/Components/Checkbox.vue';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+
+defineProps({
+    canResetPassword: {
+        type: Boolean,
+    },
+    status: {
+        type: String,
+    },
+});
+
+const form = useForm({
+    email: '',
+    password: '',
+    remember: false,
+});
+
+const submit = () => {
+    form.post(route('login'), {
+        onFinish: () => form.reset('password'),
+    });
+};
+</script>
+
+

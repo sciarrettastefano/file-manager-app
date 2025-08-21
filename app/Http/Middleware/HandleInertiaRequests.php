@@ -38,6 +38,9 @@ class HandleInertiaRequests extends Middleware
                         ? $request->user()->getAllPermissions()->pluck('name')
                         : []
             ],
+            'flash' => [
+                'warning' => fn () => $request->session()->get('warning')
+            ]
         ];
     }
 }
