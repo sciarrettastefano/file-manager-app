@@ -3,8 +3,6 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use PhpParser\Node\Expr\BinaryOp\BooleanOr;
 
 class UserPolicy
 {
@@ -14,19 +12,19 @@ class UserPolicy
     */
 
     public function view(User $user) {
-        return $user->hasRole('superadmin');
+        return $user->can('users.manage');
     }
 
     public function create(User $user) {
-        return $user->hasRole('superadmin');
+        return $user->can('users.manage');
     }
 
     public function edit(User $user) {
-        return $user->hasRole('superadmin');
+        return $user->can('users.manage');
     }
 
-    /*public function changeStatus(User $user) {
-        return $user->hasRole('superadmin');
-    }*/
+    public function changeStatus(User $user) {
+        return $user->can('users.manage');
+    }
 
 }

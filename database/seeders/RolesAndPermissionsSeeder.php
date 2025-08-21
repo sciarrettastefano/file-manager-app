@@ -39,9 +39,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Creo i permessi
         $permissions = [
+            'files.view',
             'files.edit',
-            'files.delete',
             'files.share',
+            'files.delete',
+            'files.download',
             'users.manage',
             'groups.manage',
             'groups.users.add',

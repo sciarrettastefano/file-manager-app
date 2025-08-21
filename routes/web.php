@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -14,6 +15,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
 
 Route::controller(\App\Http\Controllers\UserController::class)
     ->middleware(['auth', 'verified'])
@@ -25,15 +27,25 @@ Route::controller(\App\Http\Controllers\UserController::class)
         Route::patch('/users/mass-change-status', 'massChangeStatus')->name('users.massChangeStatus');
     });
 
+
+Route::controller(\App\Http\Controllers\FileController::class)
+    ->middleware(['auth', 'verified'])
+    ->group(function () {
+        Route::get('/files', 'index')->name('files.index');
+    });
+
+
 //si può cancellare più avanti
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 
 require __DIR__.'/auth.php';

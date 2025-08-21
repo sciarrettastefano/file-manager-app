@@ -50,7 +50,7 @@ const can = (perm) => (perm === true) ? true : permissions.includes(perm)
 const activeSection = ref(route().current());
 
 const sections = [
-    { name: 'files', icon: 'folder', label: 'Files', route: 'dashboard', perm: true },
+    { name: 'files', icon: 'folder', label: 'Files', route: 'files.index', perm: true },
     { name: 'users', icon: 'person', label: 'Users', route: 'users.index', perm: 'users.manage' }, //visibile solo se utente è superadmin
     { name: 'shares', icon: 'share', label: 'Shares', route: 'dashboard', perm: true },
     { name: 'groups', icon: 'group', label: 'Groups', route: 'dashboard', perm: true },
