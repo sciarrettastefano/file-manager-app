@@ -33,6 +33,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'email' => 'superadmin@example.com',
             'name' => 'superadmin',
             'password' => Hash::make('superadmin'),
+            'email_verified_at' => now()
         ]);
         $user->syncRoles('superadmin');
 

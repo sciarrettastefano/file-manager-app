@@ -7,11 +7,13 @@ use App\Http\Requests\EditUserRequest;
 use App\Http\Requests\MassChangeStatusRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\AccountCreationMail;
+use App\Mail\StatusChangeMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -47,6 +49,8 @@ class UserController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        Mail::to($data['email'])->send(new AccountCreationMail($user));
+
     }
 
     // Modifica dati di un utente (nome, email e ruolo)
@@ -74,6 +78,8 @@ class UserController extends Controller
 
         $user->is_active = $data['active'];
         $user->save();
+
+        Mail::to($user->email)->send(new StatusChangeMail($user, $user->is_active));
     }
 
     // Gestione massiva status utenti (attivo/inattivo)
@@ -84,8 +90,16 @@ class UserController extends Controller
 
         $data = $request->validated();
 
-        User::whereIn('id', $data['ids'])
-            ->update(['is_active' => $data['status']]);
+        $users = User::whereIn('id', $data['ids'])->get();
+
+        foreach($users as $user) {
+            if ($user->is_active != $data['status']) {
+                $user->is_active = $data['status'];
+                $user->save();
+
+                Mail::to($user->email)->send(new StatusChangeMail($user, $user->is_active));
+            }
+        }
     }
 
 }
