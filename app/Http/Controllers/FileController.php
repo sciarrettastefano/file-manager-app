@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\FileResource;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -9,11 +10,16 @@ use Inertia\Inertia;
 class FileController extends Controller
 {
     public function index(Request $request) {
-        if ($request->user()->cannot('view', File::class)) {
+        // Logica da implementare correttamente
+        /*if ($request->user()->cannot('view', File::class)) {
             abort(403, 'Unauthorized action.');
-        }
+        }*/
 
-        return Inertia::render('Files');
+        $files = File::query()->get();
+
+        return Inertia::render('Files', [
+            'files' => FileResource::collection($files)
+        ]);
     }
 
     public function create(Request $request) {
