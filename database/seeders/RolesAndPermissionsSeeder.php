@@ -29,12 +29,14 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // Assegno il ruolo superadmin all'utente creato tramite UserSeeder
-        $user = User::firstOrCreate([
-            'email' => 'superadmin@example.com',
-            'name' => 'superadmin',
-            'password' => Hash::make('superadmin'),
-            'email_verified_at' => now()
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'superadmin@example.com'],
+            [
+                'name' => 'superadmin',
+                'password' => Hash::make('superadmin'),
+                'email_verified_at' => now()
+            ]
+        );
         $user->syncRoles('superadmin');
 
         // Creo i permessi
