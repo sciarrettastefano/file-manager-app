@@ -9,8 +9,10 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\AccountCreationMail;
 use App\Mail\StatusChangeMail;
+use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -48,6 +50,12 @@ class UserController extends Controller
             'role' => $data['role'],
             'password' => Hash::make($data['password']),
         ]);
+
+        // Creo una root come prima macrocartella dell'utente appena creato
+        $file = new File();
+        $file->name = $user->email;
+        $file->is_folder = 1;
+        $file->makeRoot()->save();
 
         Mail::to($data['email'])->send(new AccountCreationMail($user));
 
