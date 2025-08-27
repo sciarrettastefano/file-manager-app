@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\File;
+use App\Models\User;
 //use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -14,10 +15,14 @@ class FileSeeder extends Seeder
     public function run(): void
     {
         // Creo una root come prima macrocartella dell'utente appena creato
-        File::create([
-            'name' => 'superadmin@example.com',
-            'is_folder' => 1
-        ])->makeRoot()
-        ->save();
+
+        $user = User::query()->where('email', 'superadmin@example.com')->first();
+
+        $file = new File();
+        $file->name = $user->email;
+        $file->is_folder = 1;
+        $file->created_by = $user->id;
+        $file->updated_by = $user->id;
+        $file->makeRoot()->save();
     }
 }

@@ -10,12 +10,17 @@ trait HasCreatorAndUpdater
     protected static function bootHasCreatorAndUpdater(){
 
         static::creating(function($model){
-            $model->created_by = Auth::id() ?? 1;
-            $model->updated_by = Auth::id() ?? 1;
+            if (!$model->created_by) {
+                $model->created_by = Auth::id();
+            }
+            if (!$model->updated_by) {
+                $model->updated_by = Auth::id();
+            }
+
         });
 
         static::updating(function($model){
-            $model->updated_by = Auth::id() ?? 1;
+            $model->updated_by = Auth::id();
         });
     }
 }

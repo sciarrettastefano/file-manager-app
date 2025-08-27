@@ -55,6 +55,8 @@ class UserController extends Controller
         $file = new File();
         $file->name = $user->email;
         $file->is_folder = 1;
+        $file->created_by = $user->id;
+        $file->updated_by = $user->id;
         $file->makeRoot()->save();
 
         Mail::to($data['email'])->send(new AccountCreationMail($user));
