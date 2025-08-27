@@ -47,9 +47,10 @@ class UserController extends Controller
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'role' => $data['role'],
             'password' => Hash::make($data['password']),
         ]);
+        
+        $user->syncRoles($data['role']);
 
         // Creo una root come prima macrocartella dell'utente appena creato
         $file = new File();
