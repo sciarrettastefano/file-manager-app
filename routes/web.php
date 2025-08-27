@@ -31,7 +31,11 @@ Route::controller(\App\Http\Controllers\UserController::class)
 Route::controller(\App\Http\Controllers\FileController::class)
     ->middleware(['auth', 'verified'])
     ->group(function () {
-        Route::get('/files', 'index')->name('files.index');
+        Route::get('/files/{folder?}', 'index')
+            ->where('folder', '(.*)')
+            ->name('files.index');
+        Route::post('/files/create', 'createFolder')->name('files.createFolder');
+        Route::post('/files/store', 'store')->name('files.store');
     });
 
 

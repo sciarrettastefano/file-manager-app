@@ -24,9 +24,16 @@
                     </div>
                     <div class="row justify-end q-gutter-md full-width q-pa-sm">
                         <!-- seconda riga - inserire pulsanti mass actions -->
+                        <CreateFileButton
+                            @createFolder="onShow('createFolder')"
+                            @upload="onShow('upload')"
+                        />
+                        <q-btn color="primary" icon="add" label="prova" @click="onShow('')" />
                     </div>
                     <div class="row justify-end q-gutter-md full-width q-pa-sm">
                         <!-- terza riga - inserire pulsanti mass actions -->
+                        <q-btn color="primary" icon="add" label="prova" @click="onShow('')" />
+                        <q-btn color="primary" icon="add" label="prova" @click="onShow('')" />
                     </div>
                 </q-toolbar>
                 <q-table
@@ -75,6 +82,10 @@
                         </div>
                     </template>
                 </q-table>
+
+                <CreateFolderModal v-model="showCreateFolderModal" @cancel="handleCancel('createFolder')" />
+                <UploadFilesModal v-model="showUploadModal" @cancel="handleCancel('upload')" />
+
             </q-page>
         </q-page-container>
     </AuthenticatedLayout>
@@ -88,11 +99,22 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue'
 import _ from 'lodash'
 import { useQuasar } from 'quasar';
+import CreateFileButton from '@/Components/App/CreateFileButton.vue';
+import CreateFolderModal from '@/Components/App/CreateFolderModal.vue';
+import UploadFilesModal from '@/Components/App/UploadFilesModal.vue';
 
 
 // Props & Emit
 const props = defineProps({
     files: {
+        type: Object,
+        default: {}
+    },
+    folder: {
+        type: Object,
+        default: {}
+    },
+    ancestors: {
         type: Object,
         default: {}
     }
@@ -106,25 +128,25 @@ const props = defineProps({
 const rows = ref(props.files.data ?? [])
 // ************************ !!!! COLONNE TABELLA (DA SISTEMARE) !!!! ************************
 const columns = computed(() => [
-    { name: 'name', align: 'left', label: 'Name' },
-    { name: 'tags', align: 'left' , label: 'Tags' },
-    { name: 'owner', align: 'left' , label: 'Owner' },
-    { name: 'lastModified', align: 'left' , label: 'Last Modified' },
-    { name: 'history', align: 'left' , label: 'History' },
-    { name: 'actions', align: 'left' , label: 'Actions' }
+    { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
+    { name: 'tags', align: 'left' , label: 'Tags', field: (row) => row.tags ?? '' },
+    { name: 'owner', align: 'left' , label: 'Owner', field: (row) => row.owner ?? '', sortable: true },
+    { name: 'lastModified', align: 'left' , label: 'Last Modified', field: (row) => row.updated_at ?? '', sortable: true },
+    { name: 'history', align: 'left' , label: 'History', field: (row) => row.id ?? '', sortable: true },
+    { name: 'actions', align: 'left' , label: 'Actions'}
 ])
-
 
 const selected = ref([])
 
-
 const pagination = ref({
-    page: 1,          // pagina corrente
+    page: 1,           // pagina corrente
     rowsPerPage: 10,   // righe per pagina
 })
 
-// Computed
+const showCreateFolderModal = ref(false)
+const showUploadModal = ref(false)
 
+// Computed
 
 // Methods
 function toggleRowSelection (evt, row) { // Selezione record tramite clic su riga
@@ -138,8 +160,32 @@ function toggleRowSelection (evt, row) { // Selezione record tramite clic su rig
     }
 }
 
-// Hooks
+function onShow(modal) {
+    switch (modal) {
+        case 'createFolder':
+            showCreateFolderModal.value = true
+            break
+        case 'upload':
+            showUploadModal.value = true
+            break
+    }
+}
 
+function handleCancel(modal) {
+    switch (modal) {
+        case 'createFolder':
+            showCreateFolderModal.value = false
+            break
+        case 'upload':
+            showUploadModal.value = false
+            break
+    }
+}
+
+// Hooks
+watch(() => props.files.data, (newData) => {
+    rows.value = _.cloneDeep(newData)
+})
 
 
 </script>

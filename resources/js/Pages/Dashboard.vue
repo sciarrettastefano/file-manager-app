@@ -1,217 +1,168 @@
 <template>
     <Head title="Dashboard" />
-
     <AuthenticatedLayout>
         <q-page-container>
             <q-page>
-                <q-table
-                    flat bordered
-                    ref="tableRef"
-                    title="Treats"
-                    :rows="rows"
-                    :columns="columns"
-                    row-key="name"
-                    selection="multiple"
-                    v-model:selected="selected"
-                    @selection="handleSelection"
-                    >
-                    <template v-slot:header-selection="scope">
-                        <q-checkbox v-model="scope.selected" />
-                    </template>
+                <q-toolbar class="q-pa-sm column">
+                    <q-toolbar-title>Dashboard</q-toolbar-title>
+                    <div class="row q-gutter-md full-width q-pa-sm">
 
-                    <template v-slot:body-selection="scope">
-                        <q-checkbox :model-value="scope.selected" @update:model-value="(val, evt) => { Object.getOwnPropertyDescriptor(scope, 'selected').set(val, evt) }" />
-                    </template>
-                </q-table>
+                    </div>
+                    <!-- inserire metodi al click-->
+                    <div class="row justify-end q-gutter-md full-width q-pa-sm">
+                    </div>
+                </q-toolbar>
+
+                <!--modale per creazione users-->
+                <CreateUserModal v-model="showCreateModal" @cancel="handleCancel('createUserModal')"/>
+                <EditUserModal v-model="showEditModal" :user="selectedUser" @cancel="handleCancel('editUserModal')"/>
+
             </q-page>
         </q-page-container>
     </AuthenticatedLayout>
 </template>
 
+
 <script setup>
+// Imports
+import CreateUserModal from '@/Components/App/CreateUserModal.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-</script>
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref, watch, computed } from 'vue'
+import _ from 'lodash'
+import { useQuasar } from 'quasar';
+import UsersInlineActionsMenu from '@/Components/App/UsersInlineActionsMenu.vue';
+import EditUserModal from '@/Components/App/EditUserModal.vue';
+import MassChangeStatusButton from '@/Components/App/MassChangeStatusButton.vue';
+import CreateFileButton from '@/Components/App/CreateFileButton.vue';
 
-<script>
-import { ref, toRaw, nextTick } from 'vue'
 
-const columns = [
-  {
-    name: 'name',
-    required: true,
-    label: 'Dessert (100g serving)',
-    align: 'left',
-    field: row => row.name,
-    format: val => `${ val }`,
-    sortable: true
-  },
-  { name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true },
-  { name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true },
-  { name: 'carbs', label: 'Carbs (g)', field: 'carbs' },
-  { name: 'protein', label: 'Protein (g)', field: 'protein' },
-  { name: 'sodium', label: 'Sodium (mg)', field: 'sodium' },
-  { name: 'calcium', label: 'Calcium (%)', field: 'calcium', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) },
-  { name: 'iron', label: 'Iron (%)', field: 'iron', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) }
-]
+// Props & Emit
+const props = defineProps({
+  users: {
+    type: Object,
+    default: {}
+}});
 
-const rows = [
-  {
-    name: 'Frozen Yogurt',
-    calories: 159,
-    fat: 6.0,
-    carbs: 24,
-    protein: 4.0,
-    sodium: 87,
-    calcium: '14%',
-    iron: '1%'
-  },
-  {
-    name: 'Ice cream sandwich',
-    calories: 237,
-    fat: 9.0,
-    carbs: 37,
-    protein: 4.3,
-    sodium: 129,
-    calcium: '8%',
-    iron: '1%'
-  },
-  {
-    name: 'Eclair',
-    calories: 262,
-    fat: 16.0,
-    carbs: 23,
-    protein: 6.0,
-    sodium: 337,
-    calcium: '6%',
-    iron: '7%'
-  },
-  {
-    name: 'Cupcake',
-    calories: 305,
-    fat: 3.7,
-    carbs: 67,
-    protein: 4.3,
-    sodium: 413,
-    calcium: '3%',
-    iron: '8%'
-  },
-  {
-    name: 'Gingerbread',
-    calories: 356,
-    fat: 16.0,
-    carbs: 49,
-    protein: 3.9,
-    sodium: 327,
-    calcium: '7%',
-    iron: '16%'
-  },
-  {
-    name: 'Jelly bean',
-    calories: 375,
-    fat: 0.0,
-    carbs: 94,
-    protein: 0.0,
-    sodium: 50,
-    calcium: '0%',
-    iron: '0%'
-  },
-  {
-    name: 'Lollipop',
-    calories: 392,
-    fat: 0.2,
-    carbs: 98,
-    protein: 0,
-    sodium: 38,
-    calcium: '0%',
-    iron: '2%'
-  },
-  {
-    name: 'Honeycomb',
-    calories: 408,
-    fat: 3.2,
-    carbs: 87,
-    protein: 6.5,
-    sodium: 562,
-    calcium: '0%',
-    iron: '45%'
-  },
-  {
-    name: 'Donut',
-    calories: 452,
-    fat: 25.0,
-    carbs: 51,
-    protein: 4.9,
-    sodium: 326,
-    calcium: '2%',
-    iron: '22%'
-  },
-  {
-    name: 'KitKat',
-    calories: 518,
-    fat: 26.0,
-    carbs: 65,
-    protein: 7,
-    sodium: 54,
-    calcium: '12%',
-    iron: '6%'
-  }
-]
 
-export default {
-    setup () {
-        const tableRef = ref()
-        const selected = ref([])
-        let storedSelectedRow
+// Uses
+const $q = useQuasar()
+const form = useForm({
+    active: null
+})
 
-        return {
-        tableRef,
-        selected,
-        columns,
-        rows,
+// Refs
+const rows = ref(props.users.data ?? [])
+const columns = computed(() => [
+    { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
+    { name: 'email', align: 'left' , label: 'Email', field: (row) => row.email ?? '', sortable: true },
+    { name: 'role', align: 'left' , label: 'Role', field: (row) => _.join(_.map(row.roles, (obj) => obj.name ?? ''), ','), sortable: true },
+    { name: 'status', align: 'left' , label: 'Status', field: (row) => row.status ?? '' },
+    { name: 'actions', align: 'left' , label: 'Actions' }
+])
 
-        handleSelection ({ rows, added, evt }) {
-            // ignore selection change from header of not from a direct click event
-            if (rows.length !== 1 || evt === void 0) return
+const showCreateModal = ref(false)
+const showEditModal = ref(false)
+const selectedUser = ref({})
 
-            const oldSelectedRow = storedSelectedRow
-            const [newSelectedRow] = rows
-            const { ctrlKey, shiftKey, metaKey } = evt
+const selected = ref([])
 
-            if (shiftKey !== true) {
-            storedSelectedRow = newSelectedRow
-            }
+const filters = ref({ email: '', group: '' })
 
-            // wait for the default selection to be performed
-            nextTick(() => {
-            if (shiftKey === true) {
-                const tableRows = tableRef.value.filteredSortedRows
-                let firstIndex = tableRows.indexOf(oldSelectedRow)
-                let lastIndex = tableRows.indexOf(newSelectedRow)
+const pagination = ref({
+    page: 1,          // pagina corrente
+    rowsPerPage: 10,   // righe per pagina
+})
 
-                if (firstIndex < 0) {
-                firstIndex = 0
-                }
+// Computed
+const selectedIds = computed(() => selected.value.map(row => row.id))
 
-                if (firstIndex > lastIndex) {
-                [ firstIndex, lastIndex ] = [ lastIndex, firstIndex ]
-                }
 
-                const rangeRows = tableRows.slice(firstIndex, lastIndex + 1)
-                // we need the original row object so we can match them against the rows in range
-                const selectedRows = selected.value.map(toRaw)
+// Methods
+function onShow(modal, row = null) {
+    // In base al modale passato come parametro, apro quel modale
+    if (modal === 'createUserModal') {
+        showCreateModal.value = true
+    }
+    if (modal === 'editUserModal') {
+        selectedUser.value = row
+        showEditModal.value = true
+    }
+}
 
-                selected.value = added === true
-                ? selectedRows.concat(rangeRows.filter(row => selectedRows.includes(row) === false))
-                : selectedRows.filter(row => rangeRows.includes(row) === false)
-            }
-            else if ((ctrlKey || metaKey) !== true && added === true) {
-                selected.value = [newSelectedRow]
-            }
+function handleCancel(modal) {
+    // In base al modale passato come parametro, chiudo quel modale
+    switch(modal) {
+        case 'createUserModal':
+            showCreateModal.value = false
+            break
+        case 'editUserModal':
+            showEditModal.value = false
+            break
+    }
+
+}
+
+function onToggleChangeStatus(row) {
+    form.active = row.status
+    form.patch(route('users.changeStatus', row.id), {
+        onSuccess: () => {
+            $q.notify({
+                color: 'green-4',
+                textColor: 'white',
+                icon: 'cloud_done',
+                message: 'User status updated correctly.'
+            })
+        },
+        onError: () => {
+            $q.notify({
+                color: 'red-5',
+                textColor: 'white',
+                icon: 'warning',
+                message: 'An error was detected.'
             })
         }
-        }
+    })
+}
+
+function handleChangeStatusInline(row) {
+    row.status = !row.status
+    onToggleChangeStatus(row)
+}
+
+function onChange() {
+    selected.value = []
+}
+
+function customFilter(rows, terms) { // Per filtrare record visualizzati
+    const search = (terms.email ?? '').toLowerCase()
+    return rows.filter(row =>
+        row.email.toLowerCase().includes(search)
+    )
+
+    /* !!aggiungere parte filtro per gruppo, una volta implementati!! */
+
+}
+
+function toggleRowSelection (evt, row) { // Selezione record tramite clic su riga
+    const index = selected.value.findIndex(r => r.id === row.id)
+    if (index > -1) {
+        // già selezionato → lo tolgo
+        selected.value.splice(index, 1)
+    } else {
+        // non selezionato → lo aggiungo
+        selected.value.push(row)
     }
-    }
+}
+
+// Hooks
+watch(() => props.users.data, (newData) => {
+    rows.value = _.cloneDeep(newData)
+})
+
+
 </script>
 
+<style scoped>
+
+</style>

@@ -49,7 +49,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
-        
+
         $user->syncRoles($data['role']);
 
         // Creo una root come prima macrocartella dell'utente appena creato
