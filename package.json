@@ -23,6 +23,7 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.0.0",
         "@quasar/extras": "^1.17.0",
         "lodash": "^4.17.21",
         "quasar": "^2.18.2"

@@ -8,6 +8,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { Quasar, Notify } from 'quasar';
 import 'quasar/src/css/index.sass'
 import '@quasar/extras/material-icons/material-icons.css'
+import '@quasar/extras/fontawesome-v6/fontawesome-v6.css'
 import _ from 'lodash'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';

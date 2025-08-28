@@ -76,6 +76,25 @@
                         <q-checkbox :model-value="scope.selected" @update:model-value="(val, evt) => { Object.getOwnPropertyDescriptor(scope, 'selected').set(val, evt) }" />
                     </template>
 
+                    <template v-slot:header-cell-name="props">
+                        <q-th>
+                            <div class="q-ml-lg text-left">
+                                {{ props.col.label }}
+                            </div>
+                        </q-th>
+                    </template>
+
+                    <template v-slot:body-cell-name="props">
+                        <q-td>
+                            <div class="flex flex-row items-center">
+                                <FileIcon :file="props.row"/>
+                                <div class="q-pl-sm">
+                                    {{ props.row.name }}
+                                </div>
+                            </div>
+                        </q-td>
+                    </template>
+
                     <!-- Slot per inserire tags -->
 
                     <!-- Slot per inserire pulsante history -->
@@ -114,13 +133,13 @@
 <script setup>
 // Imports
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue'
 import _ from 'lodash'
-import { useQuasar } from 'quasar';
 import CreateFileButton from '@/Components/App/CreateFileButton.vue';
 import CreateFolderModal from '@/Components/App/CreateFolderModal.vue';
 import UploadFilesModal from '@/Components/App/UploadFilesModal.vue';
+import FileIcon from '@/Components/App/FileIcon.vue';
 
 
 // Props & Emit
@@ -150,11 +169,11 @@ const showMyFilesOnly = ref(false)
 const filteredRows = ref(rows.value)
 
 const columns = computed(() => [
-    { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
+    { name: 'name', align: 'left', label: 'Name' },
     { name: 'tags', align: 'left' , label: 'Tags', field: (row) => row.tags ?? '' },
-    { name: 'owner', align: 'left' , label: 'Owner', field: (row) => row.owner ?? '', sortable: true },
+    { name: 'owner', align: 'left' , label: 'Owner', field: (row) => row.owner ?? '' },
     { name: 'lastModified', align: 'left' , label: 'Last Modified', field: (row) => row.updated_at ?? '', sortable: true },
-    { name: 'history', align: 'left' , label: 'History', field: (row) => row.id ?? '', sortable: true },
+    { name: 'history', align: 'left' , label: 'History', field: (row) => row.id ?? '' },
     { name: 'actions', align: 'left' , label: 'Actions'}
 ])
 
@@ -229,7 +248,6 @@ watch(() => props.files.data, (newData) => {
 })
 
 watch(showMyFilesOnly, () => { // Per filtrare dinamicamente 'showMyFilesOly' in base alla checkbox
-    console.log(showMyFilesOnly.value)
     if (!showMyFilesOnly.value) {
         filteredRows.value = rows.value
     } else {

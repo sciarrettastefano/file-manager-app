@@ -12,7 +12,7 @@ use Inertia\Inertia;
 
 class FileController extends Controller
 {
-    public function index(Request $request, string $folder = null)
+    public function index(Request $request, ?string $folder = null)
     {   // Visualizzazione file
         // Logica da implementare correttamente
         /*if ($request->user()->cannot('view', File::class)) {
@@ -24,14 +24,16 @@ class FileController extends Controller
         // Stabilisco folder
         if ($folder) {
             $folder = File::query()
-                ->where('path', $folder)
-                ->first();
+                        ->where('path', $folder)
+                        ->firstOrFail();
         }
         if (!$folder) {
             $folder = $this->getRoot();
         }
 
-        $files = File::query()->get();
+        $files = File::query()
+                    ->whereNotNull('parent_id')
+                    ->get();
 
         // Filtro i file in base a se posso vederli o meno
         $files = $files->filter(fn ($file) => $request->user()->can('view', $file));
@@ -110,7 +112,7 @@ class FileController extends Controller
 
     private function getRoot()
     {   // Restituisce la root
-        return File::query()->whereIsRoot()->where('created_by', Auth::id())->first();
+        return File::query()->whereIsRoot()->where('created_by', Auth::id())->firstOrFail();
     }
 
     public function edit(Request $request) {
