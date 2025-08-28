@@ -7,33 +7,50 @@
                     <div class="row q-gutter-md full-width q-pa-sm">
                         <!-- implementare filtri -->
                         <q-input
+                            v-model="filters.name"
                             outlined
                             placeholder="Search by name"
                             class="col"
                         />
                         <q-input
+                            v-model="filters.owner"
                             outlined
                             placeholder="Search by owner"
                             class="col"
                         />
                         <q-input
+                            v-model="filters.group"
                             outlined
                             placeholder="Search by group"
                             class="col"
                         />
                     </div>
-                    <div class="row justify-end q-gutter-md full-width q-pa-sm">
+                    <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- seconda riga - inserire pulsanti mass actions -->
-                        <CreateFileButton
-                            @createFolder="onShow('createFolder')"
-                            @upload="onShow('upload')"
-                        />
-                        <q-btn color="primary" icon="add" label="prova" @click="onShow('')" />
+                        <div class="q-pa-sm">
+                            <p> *** Pulsanti Tags ***</p>
+                        </div>
+                        <div class="q-pa-sm">
+                            <CreateFileButton
+                                class="q-ml-md"
+                                @createFolder="onShow('createFolder')"
+                                @upload="onShow('upload')"
+                            />
+                            <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
+                        </div>
                     </div>
-                    <div class="row justify-end q-gutter-md full-width q-pa-sm">
+                    <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- terza riga - inserire pulsanti mass actions -->
-                        <q-btn color="primary" icon="add" label="prova" @click="onShow('')" />
-                        <q-btn color="primary" icon="add" label="prova" @click="onShow('')" />
+                        <div class="q-pa-sm">
+                            <q-checkbox
+                                v-model="showMyFilesOnly"
+                                label="Show My Files Only"
+                            />
+                        </div>
+                        <div class="q-pa-sm">
+                            <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
+                            <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
+                        </div>
                     </div>
                 </q-toolbar>
                 <q-table
@@ -42,8 +59,10 @@
                     title="Files"
                     table-header-class="bg-orange-2"
                     :columns="columns"
-                    :rows="rows"
+                    :rows="filteredRows"
                     row-key="id"
+                    :filter="filters"
+                    :filter-method="customFilter"
                     selection="multiple"
                     v-model:selected="selected"
                     :pagination.sync="pagination"
@@ -126,7 +145,10 @@ const props = defineProps({
 
 // Refs
 const rows = ref(props.files.data ?? [])
-// ************************ !!!! COLONNE TABELLA (DA SISTEMARE) !!!! ************************
+
+const showMyFilesOnly = ref(false)
+const filteredRows = ref(rows.value)
+
 const columns = computed(() => [
     { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
     { name: 'tags', align: 'left' , label: 'Tags', field: (row) => row.tags ?? '' },
@@ -145,6 +167,9 @@ const pagination = ref({
 
 const showCreateFolderModal = ref(false)
 const showUploadModal = ref(false)
+
+const filters = ref({ name: '', owner: '', group: '' })
+
 
 // Computed
 
@@ -182,9 +207,34 @@ function handleCancel(modal) {
     }
 }
 
+function customFilter(rows, terms) { // Per filtrare record visualizzati
+    const searchName = (terms.name ?? '').toLowerCase()
+    const searchOwner = (terms.owner ?? '').toLowerCase()
+
+    return rows.filter(row => {
+        const matchesName = !searchName || row.name.toLowerCase().includes(searchName)
+        const matchesOwner = !searchOwner || row.owner.toLowerCase().includes(searchOwner)
+
+        return matchesName && matchesOwner
+    })
+
+    /* !!aggiungere parte filtro per gruppo, una volta implementati!! */
+
+}
+
 // Hooks
 watch(() => props.files.data, (newData) => {
     rows.value = _.cloneDeep(newData)
+    filteredRows.value = rows.value
+})
+
+watch(showMyFilesOnly, () => { // Per filtrare dinamicamente 'showMyFilesOly' in base alla checkbox
+    console.log(showMyFilesOnly.value)
+    if (!showMyFilesOnly.value) {
+        filteredRows.value = rows.value
+    } else {
+        filteredRows.value = rows.value.filter(row => row.owner.toLowerCase() === 'me')
+    }
 })
 
 
