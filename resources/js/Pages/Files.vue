@@ -76,6 +76,7 @@
                         <q-checkbox :model-value="scope.selected" @update:model-value="(val, evt) => { Object.getOwnPropertyDescriptor(scope, 'selected').set(val, evt) }" />
                     </template>
 
+                    <!-- Slot per inserire icona e nome -->
                     <template v-slot:header-cell-name="props">
                         <q-th>
                             <div class="q-ml-lg text-left">
@@ -96,13 +97,40 @@
                     </template>
 
                     <!-- Slot per inserire tags -->
+                     <template v-slot:body-cell-tags="props">
+                        <q-td>
+                            <div class="flex flex-row items-center q-gutter-x-sm">
+                                <q-badge size="md" color="primary" text-color="white" label="tag1" />
+                                <q-badge color="primary" text-color="white" label="tag2" />
+                                <span v-for="tag in props.tags">
+                                    <q-badge class="color-blue-500 text-color-white q-mr-xs">
+                                        {{ tag.name }}
+                                    </q-badge>
+                                </span>
+                            </div>
+                        </q-td>
+                    </template>
 
                     <!-- Slot per inserire pulsante history -->
+                    <template v-slot:body-cell-history="props">
+                        <q-td>
+                            <FilesInlineVersionsMenu
+                                @click.prevent.stop
+                                @openVersionsModal=""
+                            />
+                        </q-td>
+                    </template>
 
                     <!-- Slot per inserire pulsante per in-line actions -->
                     <template v-slot:body-cell-actions="props">
                         <q-td>
-                            <!-- Inserire in-line actions per files -->
+                            <FilesInlineActionsMenu
+                                @click.prevent.stop
+                                @option1=""
+                                @option2=""
+                                @option3=""
+                                @option4=""
+                            />
                         </q-td>
                     </template>
 
@@ -140,6 +168,8 @@ import CreateFileButton from '@/Components/App/CreateFileButton.vue';
 import CreateFolderModal from '@/Components/App/CreateFolderModal.vue';
 import UploadFilesModal from '@/Components/App/UploadFilesModal.vue';
 import FileIcon from '@/Components/App/FileIcon.vue';
+import FilesInlineActionsMenu from '@/Components/App/FilesInlineActionsMenu.vue';
+import FilesInlineVersionsMenu from '@/Components/App/FilesInlineVersionsMenu.vue';
 
 
 // Props & Emit
@@ -170,7 +200,7 @@ const filteredRows = ref(rows.value)
 
 const columns = computed(() => [
     { name: 'name', align: 'left', label: 'Name' },
-    { name: 'tags', align: 'left' , label: 'Tags', field: (row) => row.tags ?? '' },
+    { name: 'tags', align: 'left' , label: 'Tags', field: (row) => row.tags ?? [] },
     { name: 'owner', align: 'left' , label: 'Owner', field: (row) => row.owner ?? '' },
     { name: 'lastModified', align: 'left' , label: 'Last Modified', field: (row) => row.updated_at ?? '', sortable: true },
     { name: 'history', align: 'left' , label: 'History', field: (row) => row.id ?? '' },
