@@ -4,8 +4,9 @@
         <q-page-container>
             <q-page>
                 <q-toolbar class="q-pa-sm column">
+                    <!-- Prima riga toolbar -->
                     <div class="row q-gutter-md full-width q-pa-sm">
-                        <!-- implementare filtri -->
+                        <!-- filtri -->
                         <div class="q-pa-sm">
                             <p> *** Selezione User ***</p>
                         </div>
@@ -14,22 +15,42 @@
                         <q-input v-model="filters.group" clearable outlined placeholder="Search by group" class="col"
                             @keydown.enter="fetchFiles" />
                     </div>
+                    <!-- Seconda riga toolbar -->
                     <div class="row justify-between items-center q-gutter-md full-width">
-                        <!-- seconda riga - inserire pulsanti mass actions -->
+                        <!-- pulsanti tags -->
                         <div class="q-pa-sm">
                             <p> *** Pulsanti Tags ***</p>
                         </div>
+                        <!-- pulsanti mass actions -->
                         <div class="q-pa-sm">
                             <CreateFileButton class="q-ml-md" @createFolder="onShow('createFolder')"
                                 @upload="onShow('upload')" />
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
                         </div>
                     </div>
+                    <!-- Terza riga toolbar -->
                     <div class="row justify-between items-center q-gutter-md full-width">
-                        <!-- terza riga - inserire pulsanti mass actions -->
+                        <!-- breadcrumbs -->
                         <div class="q-pa-sm">
-                            <!-- breadcrumbs -->
+                             <div class="q-pa-md q-gutter-sm">
+                                <q-breadcrumbs>
+                                    <q-breadcrumbs-el
+                                        label="Home"
+                                        icon="home"
+                                        class="cursor-pointer"
+                                        @click="fetchFiles"
+                                    />
+                                    <q-breadcrumbs-el
+                                        v-for="ans in props.ancestors.data.filter(a => a.parent_id !== null)"
+                                        :key="ans.id"
+                                        :label="ans.name"
+                                        class="cursor-pointer"
+                                        @click="fetchFiles(ans)"
+                                    />
+                                </q-breadcrumbs>
+                            </div>
                         </div>
+                        <!-- pulsanti mass actions -->
                         <div class="q-pa-sm">
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
