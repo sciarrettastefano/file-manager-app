@@ -121,7 +121,8 @@ function onToggleChangeStatus(row) {
                 icon: 'warning',
                 message: 'An error was detected.'
             })
-        }
+        },
+        onFinish: () => onCancel()
     })
 }
 

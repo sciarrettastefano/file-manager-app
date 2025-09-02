@@ -60,7 +60,7 @@ function onSubmit() {
                 message: 'Folder created correctly.'
             })
         },
-        onError: () => {
+        onError: (error) => {
             console.error(error)
             $q.notify({
                 color: 'red-5',
@@ -68,9 +68,9 @@ function onSubmit() {
                 icon: 'warning',
                 message: 'An error was detected.'
             })
-        }
+        },
+        onFinish: () => onCancel()
     })
-    onCancel()
 }
 
 function onCancel() {

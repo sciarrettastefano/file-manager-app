@@ -91,9 +91,9 @@ function onSubmit() {
                 icon: 'warning',
                 message: 'An error was detected.'
             })
-        }
+        },
+        onFinish: () => onCancel()
     })
-    onCancel()
 }
 
 function onCancel() {

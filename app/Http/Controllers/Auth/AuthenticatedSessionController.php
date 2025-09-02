@@ -34,9 +34,13 @@ class AuthenticatedSessionController extends Controller
             ->where('email', $request['email'])
             ->first();
 
-        if (!$user || !$user->is_active) {
+        if (!$user) {
             return redirect()->route('login')
-                ->with('warning', 'Login rejected. Your account was deactivated.');
+                ->with('warning', 'Error. Account does not exist.');
+        }
+        if (!$user->is_active) {
+            return redirect()->route('login')
+                ->with('warning', 'Login denied. Your account was deactivated.');
         }
 
         $request->authenticate();

@@ -26,9 +26,9 @@
                             </template>
                         </q-select>
                         <q-input v-model="filters.search_name" clearable outlined placeholder="Search by name" class="col"
-                            @keydown.enter="fetchFiles" />
+                            @keydown.enter="fetchFiles" @clear="fetchFiles" />
                         <q-input v-model="filters.group" clearable outlined placeholder="Search by group" class="col"
-                            @keydown.enter="fetchFiles" />
+                            @keydown.enter="fetchFiles" @clear="fetchFiles" />
                     </div>
                     <!-- Seconda Riga Toolbar -->
                     <div class="row justify-between items-center q-gutter-md full-width">
@@ -47,8 +47,15 @@
                     <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- breadcrumbs -->
                         <div class="q-pa-sm">
-                             <div class="q-pa-md q-gutter-sm">
+                             <div class="q-gutter-sm">
                                 <q-breadcrumbs>
+                                    <q-breadcrumbs-el
+                                        v-if="filters.search_owner != page.props.auth.user.email"
+                                        :label="filters.search_owner"
+                                        icon="person"
+                                        class="cursor-pointer"
+                                        @click="fetchFiles"
+                                    />
                                     <q-breadcrumbs-el
                                         label="Home"
                                         icon="home"
@@ -161,7 +168,7 @@
 <script setup>
 // Imports
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue'
 import _ from 'lodash'
 import CreateFileButton from '@/Components/App/CreateFileButton.vue';
@@ -198,6 +205,7 @@ const props = defineProps({
 
 
 // Uses
+const page = usePage()
 
 
 // Refs

@@ -29,9 +29,7 @@ class FileController extends Controller
             ->when(!blank($ownerFilter), function ($q) use ($ownerFilter) {
                 $q->whereRelation('user', 'email', $ownerFilter);
             })->get()->filter(fn($file) => $request->user()->can('view', $file)); // Filtro i file in base a se posso vederli o meno
-            // filtro groups
-
-        /* ???????? Logica controllo autorizzazioni sufficiente ???????? */
+            //-> filtro groups
 
         $files = FileResource::collection($files);
         $ancestors = FileResource::collection([...$folderFilter->ancestors, $folderFilter]);
@@ -137,6 +135,7 @@ class FileController extends Controller
                 $q->where('created_by', Auth::id());
             })
             ->firstOrFail();
+
         return $root;
     }
 
