@@ -63,9 +63,7 @@ const sections = [
 
 
 // Methods
-function changeActiveSection(sectionRoute) {
-    activeSection.value = sectionRoute;
-}
+
 
 // Hooks
 

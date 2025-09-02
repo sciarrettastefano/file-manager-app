@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
+use App\Http\Resources\UserResource;
 use App\Models\File;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -16,20 +18,16 @@ class FileController extends Controller
     {   // Visualizzazione file
         $nameFilter = $request->input('search_name', null);
         $ownerFilter = $request->input('search_owner', null);
-        $myFilesOnlyFilter = $request->input('search_my_files_only', false);
 
-        $folderFilter = !blank($folder) ? $folder : $this->getRoot();
+        $folderFilter = !blank($folder) ? $folder : $this->getRoot($ownerFilter ?? null);
 
         $files = File::query()
             ->where('parent_id', $folderFilter?->id)
             ->when(!blank($nameFilter), function ($q) use ($nameFilter) {
                 $q->where('name', 'like', "%$nameFilter%");
             })
-            ->when(!blank($myFilesOnlyFilter), function ($q) {
-                $q->where('created_by', Auth::id());
-            })
             ->when(!blank($ownerFilter), function ($q) use ($ownerFilter) {
-                $q->whereRelation('user', 'name', 'like', "%$ownerFilter%");
+                $q->whereRelation('user', 'email', $ownerFilter);
             })->get()->filter(fn($file) => $request->user()->can('view', $file)); // Filtro i file in base a se posso vederli o meno
             // filtro groups
 
@@ -38,13 +36,20 @@ class FileController extends Controller
         $files = FileResource::collection($files);
         $ancestors = FileResource::collection([...$folderFilter->ancestors, $folderFilter]);
         $folder = new FileResource($folderFilter);
+        $orderedUsers = User::query()
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'superadmin');
+            })
+            ->where('id', '!=', Auth::id())
+            ->orderBy('email', 'asc')
+            ->get();
+        $users = UserResource::collection([Auth::user(), ...$orderedUsers]);
         $filters = [
             'search_name' => $nameFilter,
-            'search_owner' => $ownerFilter,
-            'search_my_files_only' => $myFilesOnlyFilter,
+            'search_owner' => $ownerFilter ?? Auth::user()->email,
         ];
 
-        return Inertia::render('Files', compact('files', 'folder', 'ancestors', 'filters'));
+        return Inertia::render('Files', compact('files', 'folder', 'ancestors', 'filters', 'users'));
     }
 
     public function createFolder(StoreFolderRequest $request)
@@ -115,9 +120,24 @@ class FileController extends Controller
         $parent->appendNode($model);
     }
 
-    private function getRoot()
+    private function getRoot(?String $userEmail = null)
     {   // Restituisce la root
-        return File::query()->whereIsRoot()->where('created_by', Auth::id())->firstOrFail();
+        if (!blank($userEmail)) {
+            $user = User::query()->where('email', $userEmail)->firstOrFail();
+        } else {
+            $user = null;
+        }
+
+        $root = File::query()
+            ->whereIsRoot()
+            ->when(!blank($user), function ($q) use ($user) {
+                $q->where('created_by', $user->id);
+            })
+            ->when(blank($user), function ($q) {
+                $q->where('created_by', Auth::id());
+            })
+            ->firstOrFail();
+        return $root;
     }
 
     public function edit(Request $request)

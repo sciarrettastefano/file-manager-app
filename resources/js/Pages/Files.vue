@@ -4,18 +4,33 @@
         <q-page-container>
             <q-page>
                 <q-toolbar class="q-pa-sm column">
-                    <!-- Prima riga toolbar -->
-                    <div class="row q-gutter-md full-width q-pa-sm">
+                    <!-- Prima Riga Toolbar -->
+                    <div class="row justify-between q-gutter-md full-width q-pa-sm">
                         <!-- filtri -->
-                        <div class="q-pa-sm">
-                            <p> *** Selezione User ***</p>
-                        </div>
+                        <q-select
+                            outlined
+                            v-model="filters.search_owner"
+                            use-input
+                            input-debounce="0"
+                            label="Select User"
+                            :options="filteredUserOptions"
+                            @filter="filterUser"
+                            @update:model-value="fetchFiles"
+                        >
+                            <template v-slot:no-option>
+                            <q-item>
+                                <q-item-section class="text-grey">
+                                No results
+                                </q-item-section>
+                            </q-item>
+                            </template>
+                        </q-select>
                         <q-input v-model="filters.search_name" clearable outlined placeholder="Search by name" class="col"
                             @keydown.enter="fetchFiles" />
                         <q-input v-model="filters.group" clearable outlined placeholder="Search by group" class="col"
                             @keydown.enter="fetchFiles" />
                     </div>
-                    <!-- Seconda riga toolbar -->
+                    <!-- Seconda Riga Toolbar -->
                     <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- pulsanti tags -->
                         <div class="q-pa-sm">
@@ -28,7 +43,7 @@
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
                         </div>
                     </div>
-                    <!-- Terza riga toolbar -->
+                    <!-- Terza Riga Toolbar -->
                     <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- breadcrumbs -->
                         <div class="q-pa-sm">
@@ -174,6 +189,10 @@ const props = defineProps({
     filters: {
         type: Object,
         default: {}
+    },
+    users: {
+        type: Object,
+        default: {}
     }
 })
 
@@ -194,13 +213,14 @@ const pagination = ref({
 const showCreateFolderModal = ref(false)
 const showUploadModal = ref(false)
 
+const userOptions = ref(_.cloneDeep(props.users.data.map(u => u.email)))
+const filteredUserOptions = ref(_.cloneDeep(userOptions.value))
 
 // Computed
 const rows = computed(() => _.cloneDeep(props.files.data ?? []))
 const columns = computed(() => [
     { name: 'name', align: 'left', label: 'Name' },
     { name: 'tags', align: 'left', label: 'Tags', field: (row) => row.tags ?? [] },
-    { name: 'owner', align: 'left', label: 'Owner', field: (row) => row.owner ?? '' },
     { name: 'lastModified', align: 'left', label: 'Last Modified', field: (row) => row.updated_at ?? '', sortable: true },
     { name: 'history', align: 'left', label: 'History', field: (row) => row.id ?? '' },
     { name: 'actions', align: 'left', label: 'Actions' }
@@ -254,6 +274,20 @@ function fetchFiles(folder = null) {
         preserveState: false
     })
 }
+
+function filterUser (val, update) {
+    if (val === '') {
+        update(() => {
+            filteredUserOptions.value = userOptions.value
+        })
+        return
+    }
+    update(() => {
+        const needle = val.toLowerCase()
+        filteredUserOptions.value = userOptions.value.filter(v => v.toLowerCase().indexOf(needle) > -1)
+    })
+}
+
 
 // Hooks
 watch(props.files.data, () => {
