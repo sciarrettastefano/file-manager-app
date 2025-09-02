@@ -21,6 +21,7 @@
                         use-chips
                         clearable
                         multiple
+                        @update:model-value="onFilesUpdate"
                     />
                     <q-file
                         v-if="mode == 'Upload Folder'"
@@ -33,6 +34,7 @@
                         multiple
                         directory
                         webkitdirectory
+                        @update:model-value="onFilesUpdate"
                     />
                 </div>
                 <div class="row justify-end q-gutter-sm">
@@ -80,8 +82,13 @@ const props = defineProps({
 
 
 // Methods
+function onFilesUpdate(files) {
+  form.files = files.filter(f => !f.name.startsWith('.'))
+}
+
 function onSubmitUpload() {
     form.parent_id = page.props.folder.data.id
+    form.files = [...form.files].filter(f => !f.name.startsWith('.'))
     form.relative_paths = [...form.files].map(f => f.webkitRelativePath)
 
     form.post(route('files.store'), {

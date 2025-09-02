@@ -6,24 +6,13 @@
                 <q-toolbar class="q-pa-sm column">
                     <div class="row q-gutter-md full-width q-pa-sm">
                         <!-- implementare filtri -->
-                        <q-input
-                            v-model="filters.name"
-                            outlined
-                            placeholder="Search by name"
-                            class="col"
-                        />
-                        <q-input
-                            v-model="filters.owner"
-                            outlined
-                            placeholder="Search by owner"
-                            class="col"
-                        />
-                        <q-input
-                            v-model="filters.group"
-                            outlined
-                            placeholder="Search by group"
-                            class="col"
-                        />
+                        <div class="q-pa-sm">
+                            <p> *** Selezione User ***</p>
+                        </div>
+                        <q-input v-model="filters.search_name" clearable outlined placeholder="Search by name" class="col"
+                            @keydown.enter="fetchFiles" />
+                        <q-input v-model="filters.group" clearable outlined placeholder="Search by group" class="col"
+                            @keydown.enter="fetchFiles" />
                     </div>
                     <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- seconda riga - inserire pulsanti mass actions -->
@@ -31,21 +20,15 @@
                             <p> *** Pulsanti Tags ***</p>
                         </div>
                         <div class="q-pa-sm">
-                            <CreateFileButton
-                                class="q-ml-md"
-                                @createFolder="onShow('createFolder')"
-                                @upload="onShow('upload')"
-                            />
+                            <CreateFileButton class="q-ml-md" @createFolder="onShow('createFolder')"
+                                @upload="onShow('upload')" />
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
                         </div>
                     </div>
                     <div class="row justify-between items-center q-gutter-md full-width">
                         <!-- terza riga - inserire pulsanti mass actions -->
                         <div class="q-pa-sm">
-                            <q-checkbox
-                                v-model="showMyFilesOnly"
-                                label="Show My Files Only"
-                            />
+                            <!-- breadcrumbs -->
                         </div>
                         <div class="q-pa-sm">
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
@@ -53,27 +36,16 @@
                         </div>
                     </div>
                 </q-toolbar>
-                <q-table
-                    flat
-                    bordered
-                    title="Files"
-                    table-header-class="bg-orange-2"
-                    :columns="columns"
-                    :rows="filteredRows"
-                    row-key="id"
-                    :filter="filters"
-                    :filter-method="customFilter"
-                    selection="multiple"
-                    v-model:selected="selected"
-                    :pagination.sync="pagination"
-                    @row-click="toggleRowSelection"
-                >
+                <q-table flat bordered title="Files" table-header-class="bg-orange-2" :columns="columns" :rows="rows"
+                    row-key="id" selection="multiple" v-model:selected="selected" :pagination.sync="pagination"
+                    @row-click="toggleRowSelection" @row-dblclick="openFolder">
                     <template v-slot:header-selection="scope">
                         <q-checkbox v-model="scope.selected" />
                     </template>
 
                     <template v-slot:body-selection="scope">
-                        <q-checkbox :model-value="scope.selected" @update:model-value="(val, evt) => { Object.getOwnPropertyDescriptor(scope, 'selected').set(val, evt) }" />
+                        <q-checkbox :model-value="scope.selected"
+                            @update:model-value="(val, evt) => { Object.getOwnPropertyDescriptor(scope, 'selected').set(val, evt) }" />
                     </template>
 
                     <!-- Slot per inserire icona e nome -->
@@ -88,7 +60,7 @@
                     <template v-slot:body-cell-name="props">
                         <q-td>
                             <div class="flex flex-row items-center">
-                                <FileIcon :file="props.row"/>
+                                <FileIcon :file="props.row" />
                                 <div class="q-pl-sm">
                                     {{ props.row.name }}
                                 </div>
@@ -97,9 +69,9 @@
                     </template>
 
                     <!-- Slot per inserire tags -->
-                     <template v-slot:body-cell-tags="props">
+                    <template v-slot:body-cell-tags="props">
                         <q-td>
-                            <div class="flex flex-row items-center q-gutter-x-sm">
+                            <div class="flex flex-row items-center q-gutter-sm">
                                 <q-badge size="md" color="primary" text-color="white" label="tag1" />
                                 <q-badge color="primary" text-color="white" label="tag2" />
                                 <span v-for="tag in props.tags">
@@ -114,23 +86,15 @@
                     <!-- Slot per inserire pulsante history -->
                     <template v-slot:body-cell-history="props">
                         <q-td>
-                            <FilesInlineVersionsMenu
-                                @click.prevent.stop
-                                @openVersionsModal=""
-                            />
+                            <FilesInlineVersionsMenu @click.prevent.stop @openVersionsModal="" />
                         </q-td>
                     </template>
 
                     <!-- Slot per inserire pulsante per in-line actions -->
                     <template v-slot:body-cell-actions="props">
                         <q-td>
-                            <FilesInlineActionsMenu
-                                @click.prevent.stop
-                                @option1=""
-                                @option2=""
-                                @option3=""
-                                @option4=""
-                            />
+                            <FilesInlineActionsMenu @click.prevent.stop @option1="" @option2="" @option3=""
+                                @option4="" />
                         </q-td>
                     </template>
 
@@ -161,7 +125,7 @@
 <script setup>
 // Imports
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue'
 import _ from 'lodash'
 import CreateFileButton from '@/Components/App/CreateFileButton.vue';
@@ -185,6 +149,10 @@ const props = defineProps({
     ancestors: {
         type: Object,
         default: {}
+    },
+    filters: {
+        type: Object,
+        default: {}
     }
 })
 
@@ -193,19 +161,7 @@ const props = defineProps({
 
 
 // Refs
-const rows = ref(props.files.data ?? [])
-
-const showMyFilesOnly = ref(false)
-const filteredRows = ref(rows.value)
-
-const columns = computed(() => [
-    { name: 'name', align: 'left', label: 'Name' },
-    { name: 'tags', align: 'left' , label: 'Tags', field: (row) => row.tags ?? [] },
-    { name: 'owner', align: 'left' , label: 'Owner', field: (row) => row.owner ?? '' },
-    { name: 'lastModified', align: 'left' , label: 'Last Modified', field: (row) => row.updated_at ?? '', sortable: true },
-    { name: 'history', align: 'left' , label: 'History', field: (row) => row.id ?? '' },
-    { name: 'actions', align: 'left' , label: 'Actions'}
-])
+const filters = ref(_.cloneDeep(props.filters))
 
 const selected = ref([])
 
@@ -217,13 +173,21 @@ const pagination = ref({
 const showCreateFolderModal = ref(false)
 const showUploadModal = ref(false)
 
-const filters = ref({ name: '', owner: '', group: '' })
-
 
 // Computed
+const rows = computed(() => _.cloneDeep(props.files.data ?? []))
+const columns = computed(() => [
+    { name: 'name', align: 'left', label: 'Name' },
+    { name: 'tags', align: 'left', label: 'Tags', field: (row) => row.tags ?? [] },
+    { name: 'owner', align: 'left', label: 'Owner', field: (row) => row.owner ?? '' },
+    { name: 'lastModified', align: 'left', label: 'Last Modified', field: (row) => row.updated_at ?? '', sortable: true },
+    { name: 'history', align: 'left', label: 'History', field: (row) => row.id ?? '' },
+    { name: 'actions', align: 'left', label: 'Actions' }
+])
+
 
 // Methods
-function toggleRowSelection (evt, row) { // Selezione record tramite clic su riga
+function toggleRowSelection(evt, row) { // Selezione record tramite clic su riga
     const index = selected.value.findIndex(r => r.id === row.id)
     if (index > -1) {
         // già selezionato -> lo tolgo
@@ -256,35 +220,24 @@ function handleCancel(modal) {
     }
 }
 
-function customFilter(rows, terms) { // Per filtrare record visualizzati
-    const searchName = (terms.name ?? '').toLowerCase()
-    const searchOwner = (terms.owner ?? '').toLowerCase()
+function openFolder(evt, row) {
+    if (!row.is_folder) return
 
-    return rows.filter(row => {
-        const matchesName = !searchName || row.name.toLowerCase().includes(searchName)
-        const matchesOwner = !searchOwner || row.owner.toLowerCase().includes(searchOwner)
+    fetchFiles(row)
+}
 
-        return matchesName && matchesOwner
+function fetchFiles(folder = null) {
+    router.get(route('files.index', _.get(folder, "id", props.folder)), {
+        ...filters.value,
+    }, {
+        preserveState: false
     })
-
-    /* !!aggiungere parte filtro per gruppo, una volta implementati!! */
-
 }
 
 // Hooks
-watch(() => props.files.data, (newData) => {
-    rows.value = _.cloneDeep(newData)
-    filteredRows.value = rows.value
-})
-
-watch(showMyFilesOnly, () => { // Per filtrare dinamicamente 'showMyFilesOly' in base alla checkbox
-    if (!showMyFilesOnly.value) {
-        filteredRows.value = rows.value
-    } else {
-        filteredRows.value = rows.value.filter(row => row.owner.toLowerCase() === 'me')
-    }
+watch(props.files.data, () => {
+    rows.value = _.cloneDeep(props.files.data)
 })
 
 
 </script>
-

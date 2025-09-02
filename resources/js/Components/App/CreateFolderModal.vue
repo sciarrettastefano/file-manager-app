@@ -50,9 +50,7 @@ const emit = defineEmits(['cancel'])
 
 // Methods
 function onSubmit() {
-    form.parent_id = page.props.folder.id
-    console.log(form.name)
-    console.log(form.parent_id)
+    form.parent_id = page.props.folder.data.id
     form.post(route('files.createFolder'), {
         onSuccess: () => {
             $q.notify({
@@ -63,6 +61,7 @@ function onSubmit() {
             })
         },
         onError: () => {
+            console.error(error)
             $q.notify({
                 color: 'red-5',
                 textColor: 'white',

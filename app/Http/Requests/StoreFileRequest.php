@@ -50,13 +50,15 @@ class StoreFileRequest extends ParentIdBaseRequest
                 'file',
                 function ($attribute, $value, $fail) {
                     if (!$this->folder_name) {
-                        //dd($attribute, $value);
                         $file = File::query()->where('name', $value->getClientOriginalName())
                             ->where('created_by', Auth::id())
                             ->where('parent_id', $this->parent_id)
                             ->whereNull('deleted_at')
                             ->first();
-                        //dd($file);
+
+                        if ($file) {
+                            $fail("Il file '{$value->getClientOriginalName()}' esiste già in questa cartella.");
+                        }
                     }
                 }
             ],
@@ -65,13 +67,15 @@ class StoreFileRequest extends ParentIdBaseRequest
                 'string',
                 function ($attribute, $value, $fail) {
                     if ($value) {
-                        //dd($attribute, $value);
                         $file = File::query()->where('name', $value)
                             ->where('created_by', Auth::id())
                             ->where('parent_id', $this->parent_id)
                             ->whereNull('deleted_at')
                             ->exists();
-                        //dd($file);
+
+                        if ($file) {
+                            $fail('Folder "' . $value . '" already exists.');
+                        }
                     }
                 }
             ]

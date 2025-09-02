@@ -128,7 +128,6 @@ const form = useForm({
 
 // Refs
 const rows = ref(props.users.data ?? [])
-console.log(rows)
 const columns = computed(() => [
     { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
     { name: 'email', align: 'left' , label: 'Email', field: (row) => row.email ?? '', sortable: true },

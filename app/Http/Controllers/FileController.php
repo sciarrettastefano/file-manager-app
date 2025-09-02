@@ -12,42 +12,46 @@ use Inertia\Inertia;
 
 class FileController extends Controller
 {
-    public function index(Request $request, ?string $folder = null)
+    public function index(Request $request, ?File $folder = null)
     {   // Visualizzazione file
-        // Logica da implementare correttamente
-        /*if ($request->user()->cannot('view', File::class)) {
-            abort(403, 'Unauthorized action.');
-        }*/
+        $nameFilter = $request->input('search_name', null);
+        $ownerFilter = $request->input('search_owner', null);
+        $myFilesOnlyFilter = $request->input('search_my_files_only', false);
 
-        // Quando definisco folder o getRoot con la query, devo cambiare a firstOrFail
-
-        // Stabilisco folder
-        if ($folder) {
-            $folder = File::query()
-                        ->where('path', $folder)
-                        ->firstOrFail();
-        }
-        if (!$folder) {
-            $folder = $this->getRoot();
-        }
+        $folderFilter = !blank($folder) ? $folder : $this->getRoot();
 
         $files = File::query()
-                    ->whereNotNull('parent_id')
-                    ->get();
+            ->where('parent_id', $folderFilter?->id)
+            ->when(!blank($nameFilter), function ($q) use ($nameFilter) {
+                $q->where('name', 'like', "%$nameFilter%");
+            })
+            ->when(!blank($myFilesOnlyFilter), function ($q) {
+                $q->where('created_by', Auth::id());
+            })
+            ->when(!blank($ownerFilter), function ($q) use ($ownerFilter) {
+                $q->whereRelation('user', 'name', 'like', "%$ownerFilter%");
+            })->get()->filter(fn($file) => $request->user()->can('view', $file)); // Filtro i file in base a se posso vederli o meno
+            // filtro groups
 
-        // Filtro i file in base a se posso vederli o meno
-        $files = $files->filter(fn ($file) => $request->user()->can('view', $file));
+        /* ???????? Logica controllo autorizzazioni sufficiente ???????? */
+
         $files = FileResource::collection($files);
-        $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
-        $folder = new FileResource($folder);
+        $ancestors = FileResource::collection([...$folderFilter->ancestors, $folderFilter]);
+        $folder = new FileResource($folderFilter);
+        $filters = [
+            'search_name' => $nameFilter,
+            'search_owner' => $ownerFilter,
+            'search_my_files_only' => $myFilesOnlyFilter,
+        ];
 
-        return Inertia::render('Files', compact('files', 'folder', 'ancestors'));
+        return Inertia::render('Files', compact('files', 'folder', 'ancestors', 'filters'));
     }
 
     public function createFolder(StoreFolderRequest $request)
     {   // Chiunque ha il permesso di creare cartelle
         $data = $request->validated();
-        $parent = $request->parent;
+        $parentId = $data['parent_id'];
+        $parent = File::query()->where('id', $parentId)->first();
 
         if (!$parent) {
             $parent = $this->getRoot(); //se il parent non è dato, allora prendiamo la root
@@ -63,7 +67,8 @@ class FileController extends Controller
     public function store(StoreFileRequest $request)
     {   // Chiunque ha il permesso di caricare file
         $data = $request->validated();
-        $parent = $request->parent_id;
+        $parentId = $data['parent_id'];
+        $parent = File::query()->where('id', $parentId)->first();
         $user = $request->user();
         $fileTree = $request->file_tree;
 
@@ -115,21 +120,24 @@ class FileController extends Controller
         return File::query()->whereIsRoot()->where('created_by', Auth::id())->firstOrFail();
     }
 
-    public function edit(Request $request) {
+    public function edit(Request $request)
+    {
         if ($request->user()->cannot('edit', File::class)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
-    public function delete(Request $request) {
+    public function delete(Request $request)
+    {
         if ($request->user()->cannot('delete', File::class)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
-    public function download(Request $request) {
+    public function download(Request $request)
+    {
         if ($request->user()->cannot('download', File::class)) {
             abort(403, 'Unauthorized action.');
         }
-   }
+    }
 }
