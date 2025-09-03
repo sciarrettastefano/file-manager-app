@@ -29,7 +29,4 @@ class FilePolicy
         return $user->can('files.delete') || $user->id == $file->created_by;
     }
 
-    public function download(User $user, File $file) {
-        return $user->can('files.download') || $user->id == $file->created_by;
-    }
 }

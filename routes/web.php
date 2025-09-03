@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
@@ -31,11 +32,12 @@ Route::controller(\App\Http\Controllers\UserController::class)
 Route::controller(\App\Http\Controllers\FileController::class)
     ->middleware(['auth', 'verified'])
     ->group(function () {
-        Route::get('/files/{folder?}', 'index')
+        Route::get('/my-files/{folder?}', 'index')
             ->where('folder', '(.*)')
             ->name('files.index');
         Route::post('/files/create', 'createFolder')->name('files.createFolder');
         Route::post('/files/store', 'store')->name('files.store');
+        Route::get('/files/download', 'download')->name('files.download');
     });
 
 

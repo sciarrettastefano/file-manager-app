@@ -13,6 +13,7 @@
                             use-input
                             input-debounce="0"
                             label="Select User"
+                            use-chips
                             :options="filteredUserOptions"
                             @filter="filterUser"
                             @update:model-value="fetchFiles"
@@ -74,7 +75,7 @@
                         </div>
                         <!-- pulsanti mass actions -->
                         <div class="q-pa-sm">
-                            <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
+                            <DownloadButton :file-ids="selectedIds" class="q-ml-md" />
                             <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
                         </div>
                     </div>
@@ -136,8 +137,13 @@
                     <!-- Slot per inserire pulsante per in-line actions -->
                     <template v-slot:body-cell-actions="props">
                         <q-td>
-                            <FilesInlineActionsMenu @click.prevent.stop @option1="" @option2="" @option3=""
-                                @option4="" />
+                            <FilesInlineActionsMenu
+                                @click.prevent.stop
+                                :id="props.row.id"
+                                @edit=""
+                                @share=""
+                                @delete=""
+                            />
                         </q-td>
                     </template>
 
@@ -177,6 +183,7 @@ import UploadFilesModal from '@/Components/App/UploadFilesModal.vue';
 import FileIcon from '@/Components/App/FileIcon.vue';
 import FilesInlineActionsMenu from '@/Components/App/FilesInlineActionsMenu.vue';
 import FilesInlineVersionsMenu from '@/Components/App/FilesInlineVersionsMenu.vue';
+import DownloadButton from '@/Components/App/DownloadButton.vue';
 
 
 // Props & Emit
@@ -224,6 +231,7 @@ const showUploadModal = ref(false)
 const userOptions = ref(_.cloneDeep(props.users.data.map(u => u.email)))
 const filteredUserOptions = ref(_.cloneDeep(userOptions.value))
 
+
 // Computed
 const rows = computed(() => _.cloneDeep(props.files.data ?? []))
 const columns = computed(() => [
@@ -233,6 +241,8 @@ const columns = computed(() => [
     { name: 'history', align: 'left', label: 'History', field: (row) => row.id ?? '' },
     { name: 'actions', align: 'left', label: 'Actions' }
 ])
+
+const selectedIds = computed(() => selected.value.map(row => row.id))
 
 
 // Methods

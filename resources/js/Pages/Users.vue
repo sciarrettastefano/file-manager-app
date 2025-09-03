@@ -128,13 +128,6 @@ const form = useForm({
 
 // Refs
 const rows = ref(props.users.data ?? [])
-const columns = computed(() => [
-    { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
-    { name: 'email', align: 'left' , label: 'Email', field: (row) => row.email ?? '', sortable: true },
-    { name: 'role', align: 'left' , label: 'Role', field: (row) => _.join(_.map(row.roles, (obj) => obj.name ?? ''), ','), sortable: true },
-    { name: 'status', align: 'left' , label: 'Status', field: (row) => row.status ?? '' },
-    { name: 'actions', align: 'left' , label: 'Actions' }
-])
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -149,7 +142,15 @@ const pagination = ref({
     rowsPerPage: 10,   // righe per pagina
 })
 
+
 // Computed
+const columns = computed(() => [
+    { name: 'name', align: 'left', label: 'Name', field: (row) => row.name ?? '', sortable: true },
+    { name: 'email', align: 'left' , label: 'Email', field: (row) => row.email ?? '', sortable: true },
+    { name: 'role', align: 'left' , label: 'Role', field: (row) => _.join(_.map(row.roles, (obj) => obj.name ?? ''), ','), sortable: true },
+    { name: 'status', align: 'left' , label: 'Status', field: (row) => row.status ?? '' },
+    { name: 'actions', align: 'left' , label: 'Actions' }
+])
 const selectedIds = computed(() => selected.value.map(row => row.id))
 
 

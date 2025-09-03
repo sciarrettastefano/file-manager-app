@@ -7,36 +7,36 @@
             auto-close
         >
             <q-list dense>
-                <q-item clickable class="q-pa-xs" @click="onClick('option1')">
+                <q-item clickable class="q-pa-xs" @click="onClick('edit')">
                     <q-item-section avatar class="q-pr-xs" style="min-width: 20px;">
                         <q-icon name="edit" size="sm" />
                     </q-item-section>
                     <q-item-section no-wrap>
-                        option1
+                        Edit
                     </q-item-section>
                 </q-item>
-                <q-item clickable class="q-pa-xs" @click="onClick('option2')">
+                <q-item clickable class="q-pa-xs" @click="onClick('share')">
                     <q-item-section avatar class="q-pr-xs" style="min-width: 20px;">
-                        <q-icon name="change_circle" size="sm" />
+                        <q-icon name="share" size="sm" />
                     </q-item-section>
                     <q-item-section no-wrap>
-                        option2
+                        Share
                     </q-item-section>
                 </q-item>
-                <q-item clickable class="q-pa-xs" @click="onClick('option3')">
+                <q-item clickable class="q-pa-xs" target="_blank" @click="downloadFile">
                     <q-item-section avatar class="q-pr-xs" style="min-width: 20px;">
-                        <q-icon name="edit" size="sm" />
+                        <q-icon name="download" size="sm" />
                     </q-item-section>
                     <q-item-section no-wrap>
-                        option3
+                        Download
                     </q-item-section>
                 </q-item>
-                <q-item clickable class="q-pa-xs" @click="onClick('option4')">
+                <q-item clickable class="q-pa-xs" @click="onClick('delete')">
                     <q-item-section avatar class="q-pr-xs" style="min-width: 20px;">
-                        <q-icon name="change_circle" size="sm" />
+                        <q-icon name="delete" size="sm" />
                     </q-item-section>
                     <q-item-section no-wrap>
-                        option4
+                        Delete
                     </q-item-section>
                 </q-item>
             </q-list>
@@ -56,7 +56,13 @@
 
 
 // Props & Emit
-const emit = defineEmits(['option1', 'option2', 'option3', 'option4'])
+const emit = defineEmits(['edit', 'share', 'delete'])
+const props = defineProps({
+    id: {
+        type: Number,
+        required: true
+    }
+})
 
 // Computed
 
@@ -65,6 +71,13 @@ const emit = defineEmits(['option1', 'option2', 'option3', 'option4'])
 function onClick(toEmit) {
     emit(toEmit)
 }
+
+function downloadFile() {
+    let params = new URLSearchParams()
+    params.append('file_ids[]', props.id)
+    window.open(route('files.download') + '?' + params.toString(), '_blank')
+}
+
 
 // Hooks
 

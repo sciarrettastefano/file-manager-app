@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FilesActionRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
@@ -10,6 +11,9 @@ use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Http\File as HttpFile;
 use Inertia\Inertia;
 
 class FileController extends Controller
@@ -105,7 +109,7 @@ class FileController extends Controller
     }
 
     private function saveFile($file, $user, $parent): void
-    {   // Salva un sngolo file nella cartella dell'utente
+    {   // Salva un singolo file nella cartella dell'utente
         $path = $file->store('/files' . $user->id);
 
         $model = new File();
@@ -139,6 +143,72 @@ class FileController extends Controller
         return $root;
     }
 
+    public function download(Request $request)
+    {
+        if ($request->user()->cannot('files.download')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $fileIds = $request->input('file_ids', []);
+        if (!blank(File::whereIn('id', $fileIds)->where('created_by', '!=', Auth::id())->first())) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (count($fileIds) === 1) {
+            $file = File::findOrFail($fileIds[0]);
+
+            if ($file->is_folder) {
+                if ($file->children->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No files selected',
+                    ]);
+                }
+
+                $zipPath = $this->createZip($file->children);
+                return response()->download(Storage::disk('public')->path($zipPath));
+            }
+
+            return response()->download(Storage::disk('local')->path($file->storage_path), $file->name);
+        }
+
+        $files = File::whereIn('id', $fileIds)->get();
+        $zipPath = $this->createZip($files);
+
+        return response()->download(Storage::disk('public')->path($zipPath), 'files.zip');
+    }
+
+    public function createZip($files)
+    {   // Crea file zip
+        $zipPath = 'zip/' . Str::random() . '.zip';
+
+        if (!Storage::disk('public')->exists('zip')) {
+            Storage::disk('public')->makeDirectory('zip');
+        }
+
+        $zipFile = Storage::disk('public')->path($zipPath);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            $this->addFilesToZip($zip, $files);
+            $zip->close();
+        }
+
+        return $zipPath; // ritorno path relativo
+    }
+
+    private function addFilesToZip($zip, $files, $ancestors = '')
+    { // Aggiunge file alla zip
+        foreach ($files as $file) {
+            if ($file->is_folder) {
+                $this->addFilesToZip($zip, $file->children, $ancestors . $file->name . '/');
+            } else {
+                $zip->addFile(Storage::path($file->storage_path), $ancestors . $file->name);
+            }
+        }
+    }
+
+
     public function edit(Request $request)
     {
         if ($request->user()->cannot('edit', File::class)) {
@@ -149,13 +219,6 @@ class FileController extends Controller
     public function delete(Request $request)
     {
         if ($request->user()->cannot('delete', File::class)) {
-            abort(403, 'Unauthorized action.');
-        }
-    }
-
-    public function download(Request $request)
-    {
-        if ($request->user()->cannot('download', File::class)) {
             abort(403, 'Unauthorized action.');
         }
     }
