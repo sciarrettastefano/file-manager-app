@@ -12,18 +12,18 @@
                             v-model="filters.search_owner"
                             use-input
                             input-debounce="0"
-                            label="Select User"
+                            label="Search By User"
                             use-chips
                             :options="filteredUserOptions"
                             @filter="filterUser"
                             @update:model-value="fetchFiles"
                         >
                             <template v-slot:no-option>
-                            <q-item>
-                                <q-item-section class="text-grey">
-                                No results
-                                </q-item-section>
-                            </q-item>
+                                <q-item>
+                                    <q-item-section class="text-grey">
+                                        No Options Found
+                                    </q-item-section>
+                                </q-item>
                             </template>
                         </q-select>
                         <q-input v-model="filters.search_name" clearable outlined placeholder="Search by name" class="col"
@@ -51,8 +51,7 @@
                              <div class="q-gutter-sm">
                                 <q-breadcrumbs>
                                     <q-breadcrumbs-el
-                                        v-if="filters.search_owner != page.props.auth.user.email"
-                                        :label="filters.search_owner"
+                                        :label="filters.search_owner ?? 'My Files'"
                                         icon="person"
                                         class="cursor-pointer"
                                         @click="fetchFiles"
