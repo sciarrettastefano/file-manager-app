@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FilesActionRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
@@ -13,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Http\File as HttpFile;
 use Inertia\Inertia;
 
 class FileController extends Controller
@@ -32,7 +30,10 @@ class FileController extends Controller
             })
             ->when(!blank($ownerFilter), function ($q) use ($ownerFilter) {
                 $q->whereRelation('user', 'email', $ownerFilter);
-            })->get()->filter(fn($file) => $request->user()->can('view', $file)); // Filtro i file in base a se posso vederli o meno
+            })
+            ->whereNull('deleted_at')
+            ->get()
+            ->filter(fn($file) => $request->user()->can('view', $file)); // Filtro i file in base a se posso vederli o meno
             //-> filtro groups
 
         $files = FileResource::collection($files);
@@ -45,10 +46,10 @@ class FileController extends Controller
             ->where('id', '!=', Auth::id())
             ->orderBy('email', 'asc')
             ->get();
-        $users = UserResource::collection([Auth::user(), ...$orderedUsers]);
+        $users = UserResource::collection([...$orderedUsers]);
         $filters = [
             'search_name' => $nameFilter,
-            'search_owner' => $ownerFilter ?? Auth::user()->email,
+            'search_owner' => $ownerFilter,
         ];
 
         return Inertia::render('Files', compact('files', 'folder', 'ancestors', 'filters', 'users'));
@@ -208,6 +209,30 @@ class FileController extends Controller
         }
     }
 
+    public function delete(Request $request)
+    {   // Soft delete dei file selezionati
+        if ($request->user()->cannot('delete', File::class)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $fileIds = $request->input('file_ids', []);
+
+        if (blank($fileIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No files selected',
+            ]);
+        }
+
+        foreach ($fileIds as $id) {
+            $file = File::find($id);
+            if ($file) {
+                $file->moveToTrash();
+            }
+        }
+
+        return redirect()->back();
+    }
 
     public function edit(Request $request)
     {
@@ -216,10 +241,4 @@ class FileController extends Controller
         }
     }
 
-    public function delete(Request $request)
-    {
-        if ($request->user()->cannot('delete', File::class)) {
-            abort(403, 'Unauthorized action.');
-        }
-    }
 }

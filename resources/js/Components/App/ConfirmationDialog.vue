@@ -1,5 +1,5 @@
 <template>
-    <q-dialog v-model="props.show" persistent>
+    <q-dialog :model-value="props.show" persistent>
         <q-card>
             <q-card-section>
                 <q-toolbar class="bg-primary q-pa-sm">

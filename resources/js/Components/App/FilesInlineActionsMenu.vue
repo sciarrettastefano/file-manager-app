@@ -31,7 +31,7 @@
                         Download
                     </q-item-section>
                 </q-item>
-                <q-item clickable class="q-pa-xs" @click="onClick('delete')">
+                <q-item clickable class="q-pa-xs" @click="onDeleteClick">
                     <q-item-section avatar class="q-pr-xs" style="min-width: 20px;">
                         <q-icon name="delete" size="sm" />
                     </q-item-section>
@@ -42,21 +42,36 @@
             </q-list>
         </q-menu>
     </q-btn>
+
+    <ConfirmationDialog
+        :show="showConfirmationDeleteDialog"
+        :message="'Are you sure you want to delete this file?'"
+        @cancel="onDeleteCancel"
+        @confirm="onDeleteConfirm"
+    />
+
 </template>
 
 
 <script setup>
 // Imports
+import { ref } from 'vue'
+import ConfirmationDialog from './ConfirmationDialog.vue'
+import { useForm } from '@inertiajs/vue3'
 
 
 // Uses
+const deleteFileForm = useForm({
+    file_ids: []
+})
 
 
 // Refs
+const showConfirmationDeleteDialog = ref(false)
 
 
 // Props & Emit
-const emit = defineEmits(['edit', 'share', 'delete'])
+const emit = defineEmits(['edit', 'share', 'deleted'])
 const props = defineProps({
     id: {
         type: Number,
@@ -78,6 +93,33 @@ function downloadFile() {
     window.open(route('files.download') + '?' + params.toString(), '_blank')
 }
 
+function onDeleteClick() {
+    if (!props.id) {
+        console.log('No file ID provided for delete.')
+        return
+    }
+    showConfirmationDeleteDialog.value = true
+}
+
+function onDeleteCancel() {
+    showConfirmationDeleteDialog.value = false
+}
+
+function onDeleteConfirm() {
+    deleteFileForm.file_ids = [props.id]
+    deleteFileForm.delete(route('files.delete'), {
+        onSuccess: () => {
+            emit('deleted', deleteFileForm.file_ids)
+        },
+        onError: (errors) => {
+            console.error('Error deleting file:', errors)
+        },
+        onFinish: () => {
+            showConfirmationDeleteDialog.value = false
+            deleteFileForm.reset()
+        }
+    })
+}
 
 // Hooks
 

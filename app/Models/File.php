@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\Traits\HasCreatorAndUpdater;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Kalnoy\Nestedset\NodeTrait;
 use Illuminate\Support\Str;
 
@@ -67,4 +69,26 @@ class File extends Model
         });
     }
 
+    public function moveToTrash()
+    {   // Soft delete di un file
+        $this->deleted_at = Carbon::now();
+        $this->save();
+    }
+
+    public function deleteForever()
+    {   // Cancellazione definitiva di un file
+        $this->deleteFilesFromStorage([$this]);
+        $this->forceDelete();
+    }
+
+    public function deleteFilesFromStorage($files)
+    {   // Eliminazione fisica dei file dallo storage
+        foreach($files as $file) {
+            if ($file->is_folder) {
+                $this->deleteFilesFromStorage($file->children);
+            } else {
+                Storage::disk('local')->delete($file->storage_path);
+            }
+        }
+    }
 }

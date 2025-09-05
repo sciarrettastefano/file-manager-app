@@ -75,7 +75,7 @@
                         <!-- pulsanti mass actions -->
                         <div class="q-pa-sm">
                             <DownloadButton :file-ids="selectedIds" class="q-ml-md" />
-                            <q-btn class="q-ml-md" color="primary" icon="add" label="prova" @click="onShow('')" />
+                            <DeleteButton :file-ids="selectedIds" @deleted="cleanIds" />
                         </div>
                     </div>
                 </q-toolbar>
@@ -128,20 +128,17 @@
 
                     <!-- Slot per inserire pulsante history -->
                     <template v-slot:body-cell-history="props">
-                        <q-td>
-                            <FilesInlineVersionsMenu @click.prevent.stop @openVersionsModal="" />
+                        <q-td @click.prevent.stop>
+                            <FilesInlineVersionsMenu @openVersionsModal="" />
                         </q-td>
                     </template>
 
                     <!-- Slot per inserire pulsante per in-line actions -->
                     <template v-slot:body-cell-actions="props">
-                        <q-td>
+                        <q-td @click.prevent.stop>
                             <FilesInlineActionsMenu
-                                @click.prevent.stop
                                 :id="props.row.id"
-                                @edit=""
-                                @share=""
-                                @delete=""
+                                @deleted="cleanIds"
                             />
                         </q-td>
                     </template>
@@ -183,6 +180,7 @@ import FileIcon from '@/Components/App/FileIcon.vue';
 import FilesInlineActionsMenu from '@/Components/App/FilesInlineActionsMenu.vue';
 import FilesInlineVersionsMenu from '@/Components/App/FilesInlineVersionsMenu.vue';
 import DownloadButton from '@/Components/App/DownloadButton.vue';
+import DeleteButton from '@/Components/App/DeleteButton.vue';
 
 
 // Props & Emit
@@ -303,6 +301,13 @@ function filterUser (val, update) {
         const needle = val.toLowerCase()
         filteredUserOptions.value = userOptions.value.filter(v => v.toLowerCase().indexOf(needle) > -1)
     })
+}
+
+function cleanIds(ids) {
+    console.log('id da pulire', ids)
+    console.log('prima della pulizia', selected.value)
+    selected.value = selected.value.filter(row => !ids.includes(row.id))
+    console.log('dopo la pulizia', selected.value)
 }
 
 

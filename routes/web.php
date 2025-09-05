@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TrashController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -18,7 +19,7 @@ Route::get('/', function () {
 });
 
 
-Route::controller(\App\Http\Controllers\UserController::class)
+Route::controller(UserController::class)
     ->middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/users', 'index')->name('users.index');
@@ -29,7 +30,7 @@ Route::controller(\App\Http\Controllers\UserController::class)
     });
 
 
-Route::controller(\App\Http\Controllers\FileController::class)
+Route::controller(FileController::class)
     ->middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/my-files/{folder?}', 'index')
@@ -38,6 +39,7 @@ Route::controller(\App\Http\Controllers\FileController::class)
         Route::post('/files/create', 'createFolder')->name('files.createFolder');
         Route::post('/files/store', 'store')->name('files.store');
         Route::get('/files/download', 'download')->name('files.download');
+        Route::delete('/files/delete', 'delete')->name('files.delete');
     });
 
 
